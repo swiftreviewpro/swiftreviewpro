@@ -5,7 +5,7 @@
 // fallback behaviour. All API keys stay server-side.
 // ============================================================================
 
-import openai from "./openai";
+import getOpenAI from "./openai";
 import { buildSystemPrompt, buildUserPrompt } from "./prompts";
 import type { PromptContext } from "./prompts";
 
@@ -73,7 +73,7 @@ export async function generateReply(
   const userPrompt = buildUserPrompt(ctx);
 
   try {
-    const completion = await openai.chat.completions.create({
+    const completion = await getOpenAI().chat.completions.create({
       model: MODEL,
       messages: [
         { role: "system", content: systemPrompt },

@@ -7,7 +7,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { stripe } from "@/lib/billing/stripe";
+import { getStripe } from "@/lib/billing/stripe";
 import { getPlan } from "@/config/plans";
 import { checkLocationEntitlement } from "@/lib/entitlements";
 import type { Subscription, PlanTier } from "@/lib/types";
@@ -113,7 +113,7 @@ const planConfig = getPlan(plan);
     let customerId = sub?.stripe_customer_id;
 
     if (!customerId) {
-      const customer = await stripe.customers.create({
+      const customer = await getStripe().customers.create({
         email: ctx.email || undefined,
         metadata: { organization_id: ctx.orgId, user_id: ctx.userId },
       });
@@ -124,7 +124,7 @@ const planConfig = getPlan(plan);
         .eq("organization_id", ctx.orgId);
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const session = await getStripe().checkout.sessions.create({
       customer: customerId,
       mode: "subscription",
       line_items: [{ price: planConfig.stripePriceId, quantity: 1 }],
@@ -162,7 +162,7 @@ export async function createPortalSession(): Promise<{
   }
 
   try {
-    const session = await stripe.billingPortal.sessions.create({
+    const session = await getStripe().billingPortal.sessions.create({
       customer: sub.stripe_customer_id,
       return_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing`,
     });

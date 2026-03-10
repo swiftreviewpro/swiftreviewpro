@@ -2,11 +2,17 @@ import "server-only";
 
 import { Resend } from "resend";
 
-if (!process.env.RESEND_API_KEY) {
-  console.warn("RESEND_API_KEY is not set — email sending will be disabled.");
-}
+let _resend: Resend | null = null;
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+function getResend(): Resend {
+  if (!_resend) {
+    if (!process.env.RESEND_API_KEY) {
+      console.warn("RESEND_API_KEY is not set — email sending will be disabled.");
+    }
+    _resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return _resend;
+}
 
 interface SendEmailOptions {
   to: string | string[];
@@ -33,7 +39,7 @@ export async function sendEmail({
   }
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from,
       to: Array.isArray(to) ? to : [to],
       subject,

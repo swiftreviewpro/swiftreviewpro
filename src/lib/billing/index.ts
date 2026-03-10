@@ -2,4 +2,4 @@
 // Billing Module — Barrel export
 // ============================================================================
 
-export { stripe } from "./stripe";
+export { getStripe } from "./stripe";
