@@ -1,8 +1,14 @@
 import { updateSession } from "@/lib/supabase/middleware";
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+  try {
+    return await updateSession(request);
+  } catch (err) {
+    console.error("[middleware] Unhandled error:", err);
+    // Fall through so the page still loads instead of returning 500
+    return NextResponse.next({ request });
+  }
 }
 
 export const config = {
