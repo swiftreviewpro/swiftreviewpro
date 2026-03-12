@@ -13,6 +13,13 @@ declare
   _loc2_id   uuid := '22222222-2222-2222-2222-222222222222';
 begin
 
+-- Skip on remote if the dev placeholder org does not exist.
+-- This migration is for local development only.
+if not exists (select 1 from public.organizations where id = _org_id) then
+  raise notice 'Skipping 00004_demo_seed_extended: dev org does not exist';
+  return;
+end if;
+
 -- ---- Additional reviews for rich analytics ----
 
 -- October 2025

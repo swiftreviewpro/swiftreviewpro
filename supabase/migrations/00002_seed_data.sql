@@ -33,6 +33,13 @@ declare
   _draft4    uuid := 'bbbb4444-4444-4444-4444-444444444444';
 begin
 
+-- Skip seed data if the placeholder auth user does not exist (e.g. on remote).
+-- This migration is for local development only.
+if not exists (select 1 from auth.users where id = _user_id) then
+  raise notice 'Skipping 00002_seed_data: placeholder user does not exist in auth.users';
+  return;
+end if;
+
 -- ---- User profile ----
 insert into public.users (id, email, full_name, avatar_url)
 values (_user_id, 'dev@swiftreview.local', 'Dev User', null)

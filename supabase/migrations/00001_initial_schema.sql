@@ -9,7 +9,6 @@
 -- --------------------------------------------------------------------------
 -- Extensions
 -- --------------------------------------------------------------------------
-create extension if not exists "uuid-ossp";
 create extension if not exists "pgcrypto";
 
 -- --------------------------------------------------------------------------
@@ -76,7 +75,7 @@ create index idx_users_email on public.users(email);
 -- 2. organizations
 -- --------------------------------------------------------------------------
 create table public.organizations (
-  id            uuid primary key default uuid_generate_v4(),
+  id            uuid primary key default gen_random_uuid(),
   name          text not null,
   slug          text not null unique,
   logo_url      text,
@@ -92,7 +91,7 @@ create unique index idx_organizations_slug on public.organizations(slug);
 -- 3. organization_members (join table: users ↔ organizations)
 -- --------------------------------------------------------------------------
 create table public.organization_members (
-  id                uuid primary key default uuid_generate_v4(),
+  id                uuid primary key default gen_random_uuid(),
   organization_id   uuid not null references public.organizations(id) on delete cascade,
   user_id           uuid not null references public.users(id) on delete cascade,
   role              member_role not null default 'member',
@@ -110,7 +109,7 @@ create index idx_org_members_org  on public.organization_members(organization_id
 -- 4. locations
 -- --------------------------------------------------------------------------
 create table public.locations (
-  id                uuid primary key default uuid_generate_v4(),
+  id                uuid primary key default gen_random_uuid(),
   organization_id   uuid not null references public.organizations(id) on delete cascade,
   name              text not null,
   address           text,
@@ -133,7 +132,7 @@ create index idx_locations_google on public.locations(google_place_id) where goo
 -- 5. brand_settings (one row per org)
 -- --------------------------------------------------------------------------
 create table public.brand_settings (
-  id                        uuid primary key default uuid_generate_v4(),
+  id                        uuid primary key default gen_random_uuid(),
   organization_id           uuid not null references public.organizations(id) on delete cascade unique,
   tone                      text not null default 'Professional and friendly',
   style_notes               text,
@@ -153,7 +152,7 @@ create unique index idx_brand_settings_org on public.brand_settings(organization
 -- 6. reviews
 -- --------------------------------------------------------------------------
 create table public.reviews (
-  id                uuid primary key default uuid_generate_v4(),
+  id                uuid primary key default gen_random_uuid(),
   organization_id   uuid not null references public.organizations(id) on delete cascade,
   location_id       uuid not null references public.locations(id) on delete cascade,
   reviewer_name     text not null,
@@ -181,7 +180,7 @@ create index idx_reviews_external   on public.reviews(external_id) where externa
 -- 7. reply_drafts
 -- --------------------------------------------------------------------------
 create table public.reply_drafts (
-  id                uuid primary key default uuid_generate_v4(),
+  id                uuid primary key default gen_random_uuid(),
   review_id         uuid not null references public.reviews(id) on delete cascade,
   organization_id   uuid not null references public.organizations(id) on delete cascade,
   content           text not null,
@@ -203,7 +202,7 @@ create index idx_reply_drafts_org    on public.reply_drafts(organization_id);
 -- 8. activity_logs
 -- --------------------------------------------------------------------------
 create table public.activity_logs (
-  id                uuid primary key default uuid_generate_v4(),
+  id                uuid primary key default gen_random_uuid(),
   organization_id   uuid not null references public.organizations(id) on delete cascade,
   user_id           uuid not null references public.users(id) on delete cascade,
   action            text not null,            -- e.g. 'review.created', 'reply.approved'
@@ -224,7 +223,7 @@ create index idx_activity_logs_entity   on public.activity_logs(entity_type, ent
 -- 9. subscriptions
 -- --------------------------------------------------------------------------
 create table public.subscriptions (
-  id                        uuid primary key default uuid_generate_v4(),
+  id                        uuid primary key default gen_random_uuid(),
   organization_id           uuid not null references public.organizations(id) on delete cascade unique,
   stripe_customer_id        text,
   stripe_subscription_id    text,
