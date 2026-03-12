@@ -26,11 +26,16 @@ export async function GET(request: Request) {
 
       if (user) {
         if (!(await hasCompletedOnboarding(supabase, user.id))) {
-          return NextResponse.redirect(`${origin}/onboarding`);
+          return NextResponse.redirect(
+            `${origin}/confirm?next=${encodeURIComponent("/onboarding")}`
+          );
         }
       }
 
-      return NextResponse.redirect(`${origin}${next}`);
+      // Confirmed + onboarded — send through confirmation page then to dashboard
+      return NextResponse.redirect(
+        `${origin}/confirm?next=${encodeURIComponent(next)}`
+      );
     }
   }
 

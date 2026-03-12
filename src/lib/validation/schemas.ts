@@ -134,10 +134,13 @@ export const onboardingStep1Schema = z.object({
 
 export const onboardingStep2Schema = z.object({
   tone: z.string().min(1, "Default tone is required").max(500),
-  style_notes: z.string().max(2000).optional().or(z.literal("")),
+  style_notes: z
+    .string()
+    .min(10, "Please add at least a sentence about your brand voice — this helps the AI write more authentic replies")
+    .max(2000),
   banned_phrases: z.string().max(2000).optional().or(z.literal("")),
   signature_line: z.string().max(500).optional().or(z.literal("")),
-  closing_style: z.string().max(500).optional().or(z.literal("")),
+  closing_style: z.string().min(1, "Closing style is required").max(500),
 });
 
 export const onboardingStep3Schema = z.object({
@@ -150,7 +153,15 @@ export const onboardingStep3Schema = z.object({
   escalation_phone: z.string().max(30).optional().or(z.literal("")),
   escalation_wording: z.string().max(2000).optional().or(z.literal("")),
   allow_offline_resolution: z.boolean().default(false),
-});
+}).refine(
+  (d) =>
+    (d.escalation_email && d.escalation_email.length > 0) ||
+    (d.escalation_phone && d.escalation_phone.length > 0),
+  {
+    message: "Please provide at least an escalation email or phone so unhappy customers can reach you",
+    path: ["escalation_email"],
+  }
+);
 
 export const onboardingStep4Schema = z.object({
   location_name: z.string().min(2, "Location name is required").max(200),
