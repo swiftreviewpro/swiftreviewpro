@@ -114,26 +114,57 @@ export async function generateReply(
   } catch (err: unknown) {
     console.error("[AI] Reply generation failed:", err);
 
-    // Surface rate-limit and quota errors clearly
-    if (err instanceof Error) {
-      if (err.message.includes("rate_limit") || err.message.includes("429")) {
-        return {
-          content: null,
-          error: "Rate limit reached. Please wait a moment and try again.",
-          model: MODEL,
-        };
-      }
-      if (
-        err.message.includes("insufficient_quota") ||
-        err.message.includes("billing")
-      ) {
-        return {
-          content: null,
-          error:
-            "AI quota exceeded. Please check your OpenAI billing configuration.",
-          model: MODEL,
-        };
-      }
+    // Use OpenAI SDK structured fields when available, fall back to message
+    const status =
+      err && typeof err === "object" && "status" in err
+        ? (err as { status?: number }).status
+        : undefined;
+    const code =
+      err && typeof err === "object" && "code" in err
+        ? (err as { code?: string }).code
+        : undefined;
+    const msg = err instanceof Error ? err.message : String(err);
+
+    // 1. Quota / billing errors — check FIRST because OpenAI returns
+    //    HTTP 429 for both rate-limit AND quota-exceeded, so a naive
+    //    "429" string check would mis-classify quota errors.
+    const isQuota =
+      status === 402 ||
+      code === "insufficient_quota" ||
+      msg.includes("insufficient_quota") ||
+      msg.includes("billing") ||
+      msg.includes("exceeded your current quota");
+    if (isQuota) {
+      return {
+        content: null,
+        error:
+          "OpenAI quota exceeded. Please check that your OpenAI account has billing enabled and available credits.",
+        model: MODEL,
+      };
+    }
+
+    // 2. Authentication errors
+    const isAuth = status === 401 || code === "invalid_api_key";
+    if (isAuth) {
+      return {
+        content: null,
+        error:
+          "OpenAI API key is invalid or expired. Please update OPENAI_API_KEY in your environment variables.",
+        model: MODEL,
+      };
+    }
+
+    // 3. True rate-limit (RPM / TPM)
+    const isRateLimit =
+      status === 429 ||
+      code === "rate_limit_exceeded" ||
+      msg.includes("rate_limit");
+    if (isRateLimit) {
+      return {
+        content: null,
+        error: "Rate limit reached. Please wait a moment and try again.",
+        model: MODEL,
+      };
     }
 
     return {
