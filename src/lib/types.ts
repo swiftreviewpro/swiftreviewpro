@@ -41,8 +41,11 @@ export function isValidStatusTransition(
   return VALID_STATUS_TRANSITIONS[from].includes(to);
 }
 
-export const REVIEW_SOURCES = ["manual", "csv_import", "api"] as const;
+export const REVIEW_SOURCES = ["manual", "csv_import", "api", "google_business", "yelp"] as const;
 export type ReviewSource = (typeof REVIEW_SOURCES)[number];
+
+export const INTEGRATION_PROVIDERS = ["google_business", "yelp"] as const;
+export type IntegrationProvider = (typeof INTEGRATION_PROVIDERS)[number];
 
 export const MEMBER_ROLES = ["owner", "admin", "member"] as const;
 export type MemberRole = (typeof MEMBER_ROLES)[number];
@@ -259,4 +262,30 @@ export interface AnalyticsSummary {
   reviews_over_time: { date: string; count: number }[];
   avg_rating_over_time: { date: string; avg: number }[];
   top_locations: { name: string; count: number; avg_rating: number }[];
+}
+
+// ---------- Integrations ----------
+
+export type IntegrationStatus = "active" | "paused" | "error" | "disconnected";
+
+export interface Integration {
+  id: string;
+  organization_id: string;
+  provider: IntegrationProvider;
+  /** Display label for the connection (e.g. GBP account name, Yelp biz name) */
+  label: string;
+  /** Provider-specific credentials / identifiers (encrypted at rest) */
+  credentials: Record<string, unknown>;
+  /** Which location this integration feeds reviews into */
+  location_id: string;
+  status: IntegrationStatus;
+  /** When reviews were last synced */
+  last_synced_at: string | null;
+  /** Number of reviews imported via this integration */
+  review_count: number;
+  auto_import: boolean;
+  created_at: string;
+  updated_at: string;
+  // Joined
+  location?: Location;
 }

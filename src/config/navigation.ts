@@ -7,6 +7,7 @@ import {
   MessageSquare,
   MapPin,
   BarChart3,
+  Plug,
   Settings,
   CreditCard,
   type LucideIcon,
@@ -43,6 +44,12 @@ export const dashboardNav: NavItem[] = [
     href: "/analytics",
     icon: BarChart3,
     description: "Review performance insights",
+  },
+  {
+    label: "Integrations",
+    href: "/integrations",
+    icon: Plug,
+    description: "Google & Yelp review imports",
   },
   {
     label: "Settings",
