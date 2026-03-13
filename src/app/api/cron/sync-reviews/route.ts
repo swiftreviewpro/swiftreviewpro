@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
   // ---- Process each integration sequentially to avoid API rate limits ----
   for (const integration of integrations) {
     const provider = integration.provider as IntegrationProvider;
-    const creds = integration.credentials as Record<string, unknown>;
+    const encryptedCreds = integration.credentials as string;
 
     let providerReviews: {
       reviewer_name: string;
@@ -74,24 +74,22 @@ export async function GET(request: NextRequest) {
       external_id: string;
     }[] = [];
     let fetchError: string | null = null;
+    let updatedEncryptedCreds: string | null = null;
 
     try {
       if (provider === "google_business") {
         const { fetchAllGoogleReviews } = await import(
           "@/lib/integrations/google-business"
         );
-        const result = await fetchAllGoogleReviews(
-          creds as unknown as import("@/lib/integrations/google-business").GoogleCredentials
-        );
+        const result = await fetchAllGoogleReviews(encryptedCreds);
         providerReviews = result.reviews;
         fetchError = result.error;
+        updatedEncryptedCreds = result.updatedEncryptedCreds;
       } else if (provider === "yelp") {
         const { fetchYelpReviews } = await import(
           "@/lib/integrations/yelp"
         );
-        const result = await fetchYelpReviews(
-          creds as unknown as import("@/lib/integrations/yelp").YelpCredentials
-        );
+        const result = await fetchYelpReviews(encryptedCreds);
         providerReviews = result.reviews;
         fetchError = result.error;
       } else {
@@ -99,6 +97,14 @@ export async function GET(request: NextRequest) {
       }
     } catch (err) {
       fetchError = err instanceof Error ? err.message : String(err);
+    }
+
+    // If Google token was refreshed, persist re-encrypted credentials
+    if (updatedEncryptedCreds) {
+      await supabase
+        .from("integrations")
+        .update({ credentials: updatedEncryptedCreds })
+        .eq("id", integration.id);
     }
 
     if (fetchError) {

@@ -115,7 +115,7 @@ export async function connectYelp(
   }
 
   // Import dynamically to keep server-only boundary clean
-  const { getYelpBusiness } = await import("@/lib/integrations/yelp");
+  const { getYelpBusiness, encryptYelpCredentials } = await import("@/lib/integrations/yelp");
 
   // Validate the business exists
   const biz = await getYelpBusiness(businessId);
@@ -134,13 +134,19 @@ export async function connectYelp(
     return { error: "A Yelp integration already exists for this location." };
   }
 
+  // Encrypt credentials before storing
+  const encryptedCreds = encryptYelpCredentials({
+    business_id: businessId,
+    business_name: biz.name || businessId,
+  });
+
   const { data: integration, error: insertErr } = await ctx.supabase
     .from("integrations")
     .insert({
       organization_id: ctx.orgId,
       provider: "yelp" as IntegrationProvider,
       label: biz.name || businessId,
-      credentials: { business_id: businessId, business_name: biz.name },
+      credentials: encryptedCreds,
       location_id: locationId,
       status: "active",
       auto_import: false,
@@ -196,18 +202,22 @@ export async function connectGoogle(
     return { error: "A Google Business integration already exists for this location." };
   }
 
+  // Encrypt credentials before storing — raw tokens never hit the DB
+  const { buildEncryptedGoogleCreds } = await import("@/lib/integrations/google-business");
+  const encryptedCreds = buildEncryptedGoogleCreds({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+    account_id: accountId,
+    location_id: googleLocationId,
+  });
+
   const { data: integration, error: insertErr } = await ctx.supabase
     .from("integrations")
     .insert({
       organization_id: ctx.orgId,
       provider: "google_business" as IntegrationProvider,
       label,
-      credentials: {
-        access_token: accessToken,
-        refresh_token: refreshToken,
-        account_id: accountId,
-        location_id: googleLocationId,
-      },
+      credentials: encryptedCreds,
       location_id: locationId,
       status: "active",
       auto_import: false,
@@ -263,7 +273,7 @@ export async function syncIntegration(
   }
 
   const provider = integration.provider as IntegrationProvider;
-  const creds = integration.credentials as Record<string, unknown>;
+  const encryptedCreds = integration.credentials as string;
 
   // Fetch reviews from provider
   let providerReviews: {
@@ -274,25 +284,31 @@ export async function syncIntegration(
     external_id: string;
   }[] = [];
   let fetchError: string | null = null;
+  let updatedEncryptedCreds: string | null = null;
 
   if (provider === "google_business") {
     const { fetchAllGoogleReviews } = await import(
       "@/lib/integrations/google-business"
     );
-    const result = await fetchAllGoogleReviews(
-      creds as unknown as import("@/lib/integrations/google-business").GoogleCredentials
-    );
+    const result = await fetchAllGoogleReviews(encryptedCreds);
     providerReviews = result.reviews;
     fetchError = result.error;
+    updatedEncryptedCreds = result.updatedEncryptedCreds;
   } else if (provider === "yelp") {
     const { fetchYelpReviews } = await import("@/lib/integrations/yelp");
-    const result = await fetchYelpReviews(
-      creds as unknown as import("@/lib/integrations/yelp").YelpCredentials
-    );
+    const result = await fetchYelpReviews(encryptedCreds);
     providerReviews = result.reviews;
     fetchError = result.error;
   } else {
     return { error: `Unknown provider: ${provider}`, imported: 0, skipped: 0 };
+  }
+
+  // If Google token was refreshed, persist the re-encrypted credentials
+  if (updatedEncryptedCreds) {
+    await ctx.supabase
+      .from("integrations")
+      .update({ credentials: updatedEncryptedCreds })
+      .eq("id", integrationId);
   }
 
   if (fetchError) {
@@ -452,7 +468,7 @@ export async function disconnectIntegration(
 
   const { data, error: updateErr } = await ctx.supabase
     .from("integrations")
-    .update({ status: "disconnected", auto_import: false, credentials: {} })
+    .update({ status: "disconnected", auto_import: false, credentials: "" })
     .eq("id", integrationId)
     .eq("organization_id", ctx.orgId)
     .select()

@@ -274,8 +274,8 @@ export interface Integration {
   provider: IntegrationProvider;
   /** Display label for the connection (e.g. GBP account name, Yelp biz name) */
   label: string;
-  /** Provider-specific credentials / identifiers (encrypted at rest) */
-  credentials: Record<string, unknown>;
+  /** Provider-specific credentials / identifiers (encrypted at rest, opaque string) */
+  credentials: string;
   /** Which location this integration feeds reviews into */
   location_id: string;
   status: IntegrationStatus;

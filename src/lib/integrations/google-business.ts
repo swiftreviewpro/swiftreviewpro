@@ -13,6 +13,8 @@
 
 import "server-only";
 
+import { encryptCredentials, decryptCredentials } from "./encryption";
+
 export interface GoogleReview {
   reviewer_name: string;
   rating: number;
@@ -75,25 +77,43 @@ const GBP_API_BASE = "https://mybusiness.googleapis.com/v4";
 
 /**
  * Fetch reviews from Google Business Profile API.
- * Returns normalized review objects ready for DB insertion.
+ * Accepts encrypted credentials, decrypts internally, refreshes tokens as
+ * needed, and returns updated encrypted credentials if they changed.
  *
- * @param creds - Stored Google credentials for this integration
+ * @param encryptedCreds - AES-256-GCM encrypted credential string from DB
  * @param pageToken - For pagination; pass null for first page
  */
 export async function fetchGoogleReviews(
-  creds: GoogleCredentials,
+  encryptedCreds: string,
   pageToken?: string | null
 ): Promise<{
   reviews: GoogleReview[];
   nextPageToken: string | null;
+  updatedEncryptedCreds: string | null;
   error: string | null;
 }> {
+  const creds = decryptCredentials<GoogleCredentials>(encryptedCreds);
+  if (!creds) {
+    return {
+      reviews: [],
+      nextPageToken: null,
+      updatedEncryptedCreds: null,
+      error: "Failed to decrypt Google credentials. Please reconnect your account.",
+    };
+  }
+
   let { access_token } = creds;
+  let updatedEncryptedCreds: string | null = null;
 
   // Try refreshing the token first (they expire after 1 hour)
   const refreshed = await refreshGoogleToken(creds.refresh_token);
   if (refreshed) {
     access_token = refreshed.access_token;
+    // Re-encrypt with the new access token
+    updatedEncryptedCreds = encryptCredentials({
+      ...creds,
+      access_token: refreshed.access_token,
+    });
   }
 
   const url = new URL(
@@ -114,6 +134,7 @@ export async function fetchGoogleReviews(
       return {
         reviews: [],
         nextPageToken: null,
+        updatedEncryptedCreds,
         error: "Google authorization expired. Please reconnect your Google Business account.",
       };
     }
@@ -121,6 +142,7 @@ export async function fetchGoogleReviews(
     return {
       reviews: [],
       nextPageToken: null,
+      updatedEncryptedCreds,
       error: `Google API error (${res.status}). Please try again later.`,
     };
   }
@@ -148,31 +170,47 @@ export async function fetchGoogleReviews(
   return {
     reviews,
     nextPageToken: (data.nextPageToken as string) ?? null,
+    updatedEncryptedCreds,
     error: null,
   };
 }
 
 /**
  * Fetch ALL pages of reviews (up to a safety limit).
+ * Returns updated encrypted credentials if the token was refreshed.
  */
 export async function fetchAllGoogleReviews(
-  creds: GoogleCredentials,
+  encryptedCreds: string,
   maxPages = 10
-): Promise<{ reviews: GoogleReview[]; error: string | null }> {
+): Promise<{
+  reviews: GoogleReview[];
+  updatedEncryptedCreds: string | null;
+  error: string | null;
+}> {
   const allReviews: GoogleReview[] = [];
   let nextPageToken: string | null = null;
   let pages = 0;
+  let latestEncryptedCreds: string | null = null;
+
+  // Use the original encrypted creds for the first page, then the updated
+  // creds (with refreshed token) for subsequent pages
+  let currentCreds = encryptedCreds;
 
   do {
-    const result = await fetchGoogleReviews(creds, nextPageToken);
-    if (result.error) return { reviews: allReviews, error: result.error };
+    const result = await fetchGoogleReviews(currentCreds, nextPageToken);
+    if (result.error) return { reviews: allReviews, updatedEncryptedCreds: latestEncryptedCreds, error: result.error };
+
+    if (result.updatedEncryptedCreds) {
+      latestEncryptedCreds = result.updatedEncryptedCreds;
+      currentCreds = result.updatedEncryptedCreds;
+    }
 
     allReviews.push(...result.reviews);
     nextPageToken = result.nextPageToken;
     pages++;
   } while (nextPageToken && pages < maxPages);
 
-  return { reviews: allReviews, error: null };
+  return { reviews: allReviews, updatedEncryptedCreds: latestEncryptedCreds, error: null };
 }
 
 /**
@@ -199,6 +237,7 @@ export function getGoogleAuthUrl(state: string): string | null {
 
 /**
  * Exchange an authorization code for access + refresh tokens.
+ * Returns encrypted credentials ready for DB storage — never exposes raw tokens.
  */
 export async function exchangeGoogleCode(
   code: string
@@ -239,6 +278,14 @@ export async function exchangeGoogleCode(
     refresh_token: data.refresh_token ?? "",
     error: null,
   };
+}
+
+/**
+ * Build encrypted credentials object for DB storage after Google OAuth.
+ * Called from the callback route once account/location info is known.
+ */
+export function buildEncryptedGoogleCreds(creds: GoogleCredentials): string {
+  return encryptCredentials(creds);
 }
 
 // ---------- Helpers ----------

@@ -13,6 +13,8 @@
 
 import "server-only";
 
+import { encryptCredentials, decryptCredentials } from "./encryption";
+
 export interface YelpReview {
   reviewer_name: string;
   rating: number;
@@ -88,19 +90,26 @@ export async function searchYelpBusinesses(
 /**
  * Fetch reviews from Yelp Fusion API.
  *
+ * Accepts encrypted credentials, decrypts internally.
+ *
  * NOTE: The public Yelp Fusion API only returns up to 3 review excerpts.
  * Full review content requires a Yelp Knowledge / Content partner API key.
  * This service works with either — when full reviews are available, they
  * will come through the same endpoint with complete text.
  */
 export async function fetchYelpReviews(
-  creds: YelpCredentials,
+  encryptedCreds: string,
   locale = "en_US",
   sortBy = "newest"
 ): Promise<{ reviews: YelpReview[]; error: string | null }> {
   const apiKey = process.env.YELP_API_KEY;
   if (!apiKey) {
     return { reviews: [], error: "Yelp integration not configured." };
+  }
+
+  const creds = decryptCredentials<YelpCredentials>(encryptedCreds);
+  if (!creds) {
+    return { reviews: [], error: "Failed to decrypt Yelp credentials. Please reconnect." };
   }
 
   const params = new URLSearchParams({ locale, sort_by: sortBy });
@@ -175,4 +184,11 @@ export async function getYelpBusiness(
 
   const data = await res.json();
   return { name: (data.name as string) ?? businessId, error: null };
+}
+
+/**
+ * Encrypt Yelp business credentials for DB storage.
+ */
+export function encryptYelpCredentials(creds: YelpCredentials): string {
+  return encryptCredentials(creds);
 }

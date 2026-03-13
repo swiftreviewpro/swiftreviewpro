@@ -7,7 +7,7 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { exchangeGoogleCode } from "@/lib/integrations/google-business";
+import { exchangeGoogleCode, buildEncryptedGoogleCreds } from "@/lib/integrations/google-business";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -71,6 +71,11 @@ export async function GET(request: Request) {
     );
   }
 
+  // Temporarily hold raw tokens in memory for the account/location lookup.
+  // They will be encrypted before reaching the database.
+  const rawAccessToken = tokenResult.access_token;
+  const rawRefreshToken = tokenResult.refresh_token;
+
   // Fetch the account and location from the Google Business Profile API
   // We'll get the list of accounts first, then the locations
   let accountId = "";
@@ -82,7 +87,7 @@ export async function GET(request: Request) {
     const accountsRes = await fetch(
       "https://mybusinessaccountmanagement.googleapis.com/v1/accounts",
       {
-        headers: { Authorization: `Bearer ${tokenResult.access_token}` },
+        headers: { Authorization: `Bearer ${rawAccessToken}` },
       }
     );
     const accountsData = await accountsRes.json();
@@ -95,7 +100,7 @@ export async function GET(request: Request) {
       const locationsRes = await fetch(
         `https://mybusinessbusinessinformation.googleapis.com/v1/${accountId}/locations?readMask=name,title`,
         {
-          headers: { Authorization: `Bearer ${tokenResult.access_token}` },
+          headers: { Authorization: `Bearer ${rawAccessToken}` },
         }
       );
       const locationsData = await locationsRes.json();
@@ -117,6 +122,14 @@ export async function GET(request: Request) {
     );
   }
 
+  // Encrypt credentials before storing — raw tokens never reach the database
+  const encryptedCreds = buildEncryptedGoogleCreds({
+    access_token: rawAccessToken,
+    refresh_token: rawRefreshToken,
+    account_id: accountId,
+    location_id: googleLocationId,
+  });
+
   // Check for existing integration
   const { data: existing } = await supabase
     .from("integrations")
@@ -127,16 +140,11 @@ export async function GET(request: Request) {
     .maybeSingle();
 
   if (existing) {
-    // Update existing integration with new tokens
+    // Update existing integration with re-encrypted tokens
     await supabase
       .from("integrations")
       .update({
-        credentials: {
-          access_token: tokenResult.access_token,
-          refresh_token: tokenResult.refresh_token,
-          account_id: accountId,
-          location_id: googleLocationId,
-        },
+        credentials: encryptedCreds,
         status: "active",
         label: locationName,
       })
@@ -154,12 +162,7 @@ export async function GET(request: Request) {
       organization_id: state.orgId,
       provider: "google_business",
       label: locationName,
-      credentials: {
-        access_token: tokenResult.access_token,
-        refresh_token: tokenResult.refresh_token,
-        account_id: accountId,
-        location_id: googleLocationId,
-      },
+      credentials: encryptedCreds,
       location_id: state.locationId,
       status: "active",
       auto_import: false,
