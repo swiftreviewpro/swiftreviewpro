@@ -98,7 +98,21 @@ export async function generateReplyDraft(
     return { error: entitlement.error! };
   }
 
-  // 5. Build prompt context
+  // 5. Fetch previous drafts so the AI can avoid repeating itself
+  const { data: existingDrafts } = await ctx.supabase
+    .from("reply_drafts")
+    .select("content")
+    .eq("review_id", reviewId)
+    .eq("organization_id", ctx.orgId)
+    .order("version", { ascending: false })
+    .limit(3);
+
+  const previousDrafts = (existingDrafts ?? [])
+    .map((d) => d.content)
+    .filter(Boolean) as string[];
+  const attemptNumber = previousDrafts.length + 1;
+
+  // 6. Build prompt context
   const promptCtx: PromptContext = {
     review: {
       reviewer_name: review.reviewer_name,
@@ -109,16 +123,18 @@ export async function generateReplyDraft(
     },
     brand: brand as BrandSettings | null,
     org: org as Pick<Organization, "name" | "category"> | null,
+    previousDrafts: previousDrafts.length > 0 ? previousDrafts : undefined,
+    attemptNumber,
   };
 
-  // 6. Generate via AI
+  // 7. Generate via AI
   const result = await generateReply(promptCtx);
 
   if (result.error || !result.content) {
     return { error: result.error ?? "Generation failed." };
   }
 
-  // 7. Determine version number
+  // 8. Determine version number
   const { count: draftCount } = await ctx.supabase
     .from("reply_drafts")
     .select("id", { count: "exact", head: true })
@@ -126,7 +142,7 @@ export async function generateReplyDraft(
 
   const version = (draftCount ?? 0) + 1;
 
-  // 8. Insert draft
+  // 9. Insert draft
   const { data: draft, error: draftErr } = await ctx.supabase
     .from("reply_drafts")
     .insert({
@@ -142,14 +158,14 @@ export async function generateReplyDraft(
     return { error: draftErr.message };
   }
 
-  // 9. Update review status → draft_generated
+  // 10. Update review status → draft_generated
   await ctx.supabase
     .from("reviews")
     .update({ status: "draft_generated" })
     .eq("id", reviewId)
     .eq("organization_id", ctx.orgId);
 
-  // 10. Log activity
+  // 11. Log activity
   await ctx.supabase.from("activity_logs").insert({
     organization_id: ctx.orgId,
     user_id: ctx.userId,

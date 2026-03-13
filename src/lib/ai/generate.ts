@@ -20,7 +20,9 @@ export interface GenerationResult {
 
 const MODEL = "gpt-4o-mini";
 const MAX_TOKENS = 500;
-const TEMPERATURE = 0.7;
+/** Base temperature — bumped higher on regeneration attempts for more variety */
+const BASE_TEMPERATURE = 0.85;
+const REGEN_TEMPERATURE = 0.95;
 
 // ---------- V14: Output validation ----------
 
@@ -73,6 +75,10 @@ export async function generateReply(
   const userPrompt = buildUserPrompt(ctx);
 
   try {
+    // Use higher temperature + random seed on regeneration attempts
+    const isRegen = (ctx.attemptNumber ?? 1) > 1;
+    const temperature = isRegen ? REGEN_TEMPERATURE : BASE_TEMPERATURE;
+
     const completion = await getOpenAI().chat.completions.create({
       model: MODEL,
       messages: [
@@ -80,7 +86,9 @@ export async function generateReply(
         { role: "user", content: userPrompt },
       ],
       max_tokens: MAX_TOKENS,
-      temperature: TEMPERATURE,
+      temperature,
+      // Random seed ensures the model takes a different sampling path each time
+      seed: Math.floor(Math.random() * 2_147_483_647),
     });
 
     const content = completion.choices[0]?.message?.content?.trim() ?? null;

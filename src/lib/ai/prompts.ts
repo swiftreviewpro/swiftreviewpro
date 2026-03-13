@@ -30,6 +30,10 @@ export interface PromptContext {
     | "additional_instructions"
   > | null;
   org: Pick<Organization, "name" | "category"> | null;
+  /** Previous draft texts for this review — used to ensure regenerations differ */
+  previousDrafts?: string[];
+  /** Which attempt number this is (1 = first, 2+ = regeneration) */
+  attemptNumber?: number;
 }
 
 export type PromptType = "positive" | "neutral" | "negative";
@@ -167,7 +171,7 @@ export function buildSystemPrompt(ctx: PromptContext): string {
 // ---------- User Prompt ----------
 
 export function buildUserPrompt(ctx: PromptContext): string {
-  const { review, org } = ctx;
+  const { review, org, previousDrafts, attemptNumber } = ctx;
   const parts: string[] = [];
 
   if (org?.name) parts.push(`Business: ${org.name}`);
@@ -178,9 +182,25 @@ export function buildUserPrompt(ctx: PromptContext): string {
   // Wrap review text in XML delimiters to isolate untrusted content
   parts.push(`<review>\n${review.review_text}\n</review>`);
   parts.push("");
-  parts.push(
-    "Write a reply to the review above. Remember: reference specific details from their review, sound like a real human, and avoid any generic or cookie-cutter language."
-  );
+
+  // When regenerating, inject previous drafts so the model avoids repeating itself
+  if (previousDrafts && previousDrafts.length > 0) {
+    parts.push("IMPORTANT: The user was not satisfied with the previous version(s) and wants a COMPLETELY different reply.");
+    parts.push("Here are the previous drafts — do NOT reuse their phrasing, structure, or opening:");
+    for (let i = 0; i < previousDrafts.length; i++) {
+      parts.push(`<previous_draft_${i + 1}>${previousDrafts[i]}</previous_draft_${i + 1}>`);
+    }
+    parts.push("");
+    parts.push(
+      `Write attempt #${attemptNumber ?? previousDrafts.length + 1}: a FRESH, completely original reply. ` +
+      "Use a different opening, different sentence structure, and different word choices. " +
+      "Reference specific details from their review, sound like a real human, and avoid any generic or cookie-cutter language."
+    );
+  } else {
+    parts.push(
+      "Write a reply to the review above. Remember: reference specific details from their review, sound like a real human, and avoid any generic or cookie-cutter language."
+    );
+  }
 
   return parts.join("\n");
 }
