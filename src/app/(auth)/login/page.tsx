@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Shield, Star } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -38,94 +39,113 @@ export default function LoginPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-xl">Welcome back</CardTitle>
-        <CardDescription>Sign in to your account</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {state.error && (
-          <div className="mb-4 rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {state.error}
-          </div>
-        )}
-
-        <form action={formAction} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              autoComplete="email"
-              required
-            />
-            {state.fieldErrors?.email && (
-              <p className="text-xs text-destructive">
-                {state.fieldErrors.email[0]}
-              </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
-              <Link
-                href="#"
-                className="text-xs text-primary hover:underline"
-              >
-                Forgot password?
-              </Link>
+    <>
+      <Card className="shadow-xl shadow-primary/5 border-border/50">
+        <CardHeader className="text-center pb-2">
+          <CardTitle className="text-xl font-bold">Welcome back</CardTitle>
+          <CardDescription>Sign in to your account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {state.error && (
+            <div className="mb-4 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive font-medium">
+              {state.error}
             </div>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="••••••••"
-              autoComplete="current-password"
-              required
-            />
-            {state.fieldErrors?.password && (
-              <p className="text-xs text-destructive">
-                {state.fieldErrors.password[0]}
-              </p>
-            )}
-          </div>
-          <Button type="submit" className="w-full" disabled={isPending}>
-            {isPending ? "Signing in…" : "Sign In"}
-          </Button>
-        </form>
+          )}
 
-        <Separator className="my-6" />
-
-        <p className="text-sm text-center text-muted-foreground">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/signup"
-            className="text-primary font-medium hover:underline"
-          >
-            Sign up
-          </Link>
-        </p>
-
-        {IS_DEMO_MODE && (
-          <>
-            <Separator className="my-6" />
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              disabled={demoLoading}
-              onClick={handleDemoLogin}
-            >
-              {demoLoading ? "Loading demo…" : "Try Demo →"}
+          <form action={formAction} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                autoComplete="email"
+                required
+                className="h-10 rounded-xl"
+              />
+              {state.fieldErrors?.email && (
+                <p className="text-xs text-destructive">
+                  {state.fieldErrors.email[0]}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href="#"
+                  className="text-xs text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                autoComplete="current-password"
+                required
+                className="h-10 rounded-xl"
+              />
+              {state.fieldErrors?.password && (
+                <p className="text-xs text-destructive">
+                  {state.fieldErrors.password[0]}
+                </p>
+              )}
+            </div>
+            <Button type="submit" className="w-full h-10 rounded-xl btn-gradient border-0 font-semibold" disabled={isPending}>
+              {isPending ? "Signing in…" : "Sign In"}
             </Button>
-            <p className="mt-2 text-xs text-center text-muted-foreground">
-              No account needed — explore with sample data
-            </p>
-          </>
-        )}
-      </CardContent>
-    </Card>
+          </form>
+
+          <Separator className="my-6" />
+
+          <p className="text-sm text-center text-muted-foreground">
+            Don&apos;t have an account?{" "}
+            <Link
+              href="/signup"
+              className="text-primary font-semibold hover:underline"
+            >
+              Sign up free
+            </Link>
+          </p>
+
+          {IS_DEMO_MODE && (
+            <>
+              <Separator className="my-6" />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full rounded-xl"
+                disabled={demoLoading}
+                onClick={handleDemoLogin}
+              >
+                {demoLoading ? "Loading demo…" : "Try Demo →"}
+              </Button>
+              <p className="mt-2 text-xs text-center text-muted-foreground">
+                No account needed — explore with sample data
+              </p>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Trust signals */}
+      <div className="flex items-center justify-center gap-4 mt-6 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <Shield className="w-3.5 h-3.5" />
+          256-bit encryption
+        </div>
+        <span className="text-border">|</span>
+        <div className="flex items-center gap-1">
+          {[...Array(5)].map((_, i) => (
+            <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+          ))}
+          <span className="ml-1">4.9/5</span>
+        </div>
+      </div>
+    </>
   );
 }

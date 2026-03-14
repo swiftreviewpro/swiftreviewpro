@@ -24,8 +24,8 @@ export function PageHeader({
         className
       )}
     >
-      <div className="space-y-1">
-        <h1>{title}</h1>
+      <div className="space-y-1.5">
+        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight">{title}</h1>
         {description && (
           <p className="text-muted-foreground text-sm">{description}</p>
         )}

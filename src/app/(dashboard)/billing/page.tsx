@@ -120,14 +120,17 @@ async function BillingContent() {
   return (
     <div className="space-y-8">
       {/* Current Plan Card */}
-      <div className="card-elevated card-padding">
-        <div className="flex items-center justify-between mb-6">
+      <div className="card-elevated card-padding relative overflow-hidden">
+        {/* Subtle mesh gradient */}
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+
+        <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold">Current Plan</h3>
-              <Badge variant="secondary">{planLabel}</Badge>
+            <div className="flex items-center gap-2.5">
+              <h3 className="text-lg font-bold">Current Plan</h3>
+              <Badge variant="secondary" className="font-semibold">{planLabel}</Badge>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-muted-foreground mt-1.5">
               {currentPlan === "free"
                 ? "You're on the free tier. Upgrade for more features."
                 : `You're on the ${planLabel} plan at $${limits.price}/month.`}
@@ -155,7 +158,7 @@ async function BillingContent() {
         </div>
 
         {subscription?.current_period_end && (
-          <p className="text-xs text-muted-foreground mt-4">
+          <p className="text-xs text-muted-foreground mt-5 pt-4 border-t">
             Current period ends{" "}
             {new Date(subscription.current_period_end).toLocaleDateString(
               "en-US",
@@ -167,12 +170,12 @@ async function BillingContent() {
 
       {/* Plan Cards */}
       <div>
-        <h3 className="text-lg font-semibold mb-1">Available Plans</h3>
+        <h3 className="text-lg font-bold mb-1">Available Plans</h3>
         <p className="text-sm text-muted-foreground mb-6">
           Choose the plan that fits your business
         </p>
 
-        <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-4">
+        <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-5">
           {(
             ["free", "starter", "growth", "pro", "enterprise"] as PlanTier[]
           ).map((tier) => {
@@ -183,28 +186,32 @@ async function BillingContent() {
             return (
               <div
                 key={tier}
-                className={`card-elevated card-padding relative flex flex-col ${
-                  isCurrent ? "ring-2 ring-primary" : ""
-                } ${planInfo.popular ? "border-primary/50" : ""}`}
+                className={`relative flex flex-col card-padding rounded-2xl transition-all duration-300 ${
+                  isCurrent
+                    ? "card-glow bg-card shadow-xl"
+                    : planInfo.popular
+                    ? "card-elevated border-primary/30 shadow-md hover:shadow-lg"
+                    : "card-elevated hover:shadow-md"
+                }`}
               >
                 {isCurrent && (
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
-                    <Badge>Current</Badge>
+                    <Badge className="btn-gradient border-0 text-white shadow-sm">Current</Badge>
                   </div>
                 )}
                 {planInfo.popular && !isCurrent && (
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2">
-                    <Badge variant="secondary">Popular</Badge>
+                    <Badge variant="secondary" className="font-semibold shadow-sm">Popular</Badge>
                   </div>
                 )}
 
-                <div className="text-center mb-4 pt-2">
-                  <h4 className="font-semibold">{getPlan(tier).name}</h4>
+                <div className="text-center mb-4 pt-3">
+                  <h4 className="font-bold">{getPlan(tier).name}</h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {planInfo.tagline}
                   </p>
                   <div className="mt-3">
-                    <span className="text-3xl font-bold">
+                    <span className="text-3xl font-extrabold tracking-tight">
                       ${planLimits.price}
                     </span>
                     {planLimits.price > 0 && (
@@ -218,7 +225,7 @@ async function BillingContent() {
                 <ul className="space-y-2.5 flex-1">
                   {planInfo.features.map((f) => (
                     <li key={f} className="flex items-start gap-2 text-sm">
-                      <Check className="w-4 h-4 mt-0.5 text-emerald-500 shrink-0" />
+                      <Check className="w-4 h-4 mt-0.5 text-success shrink-0" />
                       {f}
                     </li>
                   ))}
@@ -256,30 +263,35 @@ function UsageMeter({
   const isOver = !isUnlimited && pct >= 100;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <div className="flex justify-between text-sm">
-        <span className="text-muted-foreground">{label}</span>
-        <span className="font-medium">
+        <span className="text-muted-foreground font-medium">{label}</span>
+        <span className="font-semibold tabular-nums">
           {used}{" "}
-          <span className="text-muted-foreground">
+          <span className="text-muted-foreground font-normal">
             / {isUnlimited ? "∞" : limit}
           </span>
         </span>
       </div>
-      <div className="h-2 bg-muted rounded-full overflow-hidden">
+      <div className="h-2.5 bg-muted rounded-full overflow-hidden">
         <div
-          className={`h-full rounded-full transition-all ${
+          className={`h-full rounded-full transition-all duration-500 ${
             isOver
               ? "bg-destructive"
               : isWarning
               ? "bg-amber-500"
-              : "bg-primary"
+              : ""
           }`}
-          style={{ width: `${isUnlimited ? 0 : pct}%` }}
+          style={{
+            width: `${isUnlimited ? 0 : pct}%`,
+            ...(!isOver && !isWarning
+              ? { background: "linear-gradient(90deg, oklch(0.45 0.19 265), oklch(0.55 0.22 290))" }
+              : {}),
+          }}
         />
       </div>
       {isOver && (
-        <p className="text-[11px] text-destructive">Limit reached — upgrade to continue</p>
+        <p className="text-[11px] text-destructive font-medium">Limit reached — upgrade to continue</p>
       )}
     </div>
   );

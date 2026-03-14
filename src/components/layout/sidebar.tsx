@@ -29,7 +29,7 @@ export function Sidebar() {
         <Logo size="md" className="text-sidebar-foreground" />
       </div>
 
-      <Separator className="bg-sidebar-border" />
+      <div className="mx-4 h-px bg-gradient-to-r from-transparent via-sidebar-border to-transparent" />
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1">
@@ -43,26 +43,29 @@ export function Sidebar() {
               href={item.href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-primary"
-                  : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                  ? "bg-sidebar-accent text-sidebar-primary shadow-sm shadow-primary/10"
+                  : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
               )}
             >
               <item.icon className="w-4 h-4 shrink-0" />
               {item.label}
+              {isActive && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-sidebar-primary" />
+              )}
             </Link>
           );
         })}
       </nav>
 
-      <Separator className="bg-sidebar-border" />
+      <div className="mx-4 h-px bg-gradient-to-r from-transparent via-sidebar-border to-transparent" />
 
       {/* Sign Out */}
       <div className="px-3 py-4">
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors w-full"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-all duration-200 w-full"
         >
           <LogOut className="w-4 h-4" />
           Sign Out

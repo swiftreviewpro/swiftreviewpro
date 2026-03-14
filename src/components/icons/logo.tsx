@@ -20,14 +20,17 @@ export function Logo({ size = "md", showText = true, className }: LogoProps) {
     <div className={cn("flex items-center gap-2.5", className)}>
       <div
         className={cn(
-          "flex items-center justify-center rounded-lg bg-primary text-primary-foreground",
+          "flex items-center justify-center rounded-xl text-white shadow-md shadow-primary/20",
           s.box
         )}
+        style={{
+          background: "linear-gradient(135deg, oklch(0.45 0.19 265), oklch(0.48 0.22 280))",
+        }}
       >
-        <Zap className={s.icon} />
+        <Zap className={cn(s.icon, "drop-shadow-sm")} />
       </div>
       {showText && (
-        <span className={cn("font-semibold tracking-tight", s.text)}>
+        <span className={cn("font-bold tracking-tight", s.text)}>
           SwiftReview
         </span>
       )}

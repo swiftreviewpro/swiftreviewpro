@@ -33,7 +33,7 @@ export function Topbar({ title }: TopbarProps) {
     : "U";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-card/80 backdrop-blur-sm px-4 md:px-8">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border/50 bg-background/70 backdrop-blur-xl px-4 md:px-8">
       {/* Left: Page title */}
       {title && (
         <>
@@ -50,7 +50,7 @@ export function Topbar({ title }: TopbarProps) {
             type="search"
             placeholder="Search — coming soon"
             disabled
-            className="pl-9 h-9 bg-muted/50 border-0 opacity-60 cursor-not-allowed"
+            className="pl-9 h-9 bg-muted/40 border-0 rounded-xl opacity-60 cursor-not-allowed"
           />
         </div>
       </div>
@@ -60,7 +60,7 @@ export function Topbar({ title }: TopbarProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="relative text-muted-foreground"
+          className="relative text-muted-foreground rounded-xl"
           disabled
           aria-label="Notifications — coming soon"
         >
@@ -71,9 +71,9 @@ export function Topbar({ title }: TopbarProps) {
         <Separator orientation="vertical" className="h-6 hidden sm:block" />
 
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-2 px-2 rounded-md hover:bg-accent h-9">
+          <DropdownMenuTrigger className="flex items-center gap-2 px-2 rounded-xl hover:bg-accent h-9 transition-colors">
               <Avatar className="w-7 h-7">
-                <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                <AvatarFallback className="text-xs font-semibold bg-primary/10 text-primary">
                   {initials}
                 </AvatarFallback>
               </Avatar>
