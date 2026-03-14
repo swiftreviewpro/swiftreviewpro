@@ -10,6 +10,8 @@
 // (local dev / CI), so no hard dependency on Redis for development.
 // ============================================================================
 
+import "server-only";
+
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
