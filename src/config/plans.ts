@@ -5,6 +5,8 @@
 // Import PlanTier from @/lib/types (DB-aligned); config is derived here.
 // ============================================================================
 
+import "server-only";
+
 import type { PlanTier } from "@/lib/types";
 
 export interface PlanConfig {

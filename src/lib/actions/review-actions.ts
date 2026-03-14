@@ -165,6 +165,16 @@ export async function createReview(
   const ctx = await getAuthContext();
   if (!ctx) return { error: "You must be logged in." };
 
+  // Rate-limit burst creation
+  const rl = await checkRateLimit(
+    RATE_LIMITS.csvImport,
+    `create-review:${ctx.userId}`,
+    `create-review-org:${ctx.orgId}`
+  );
+  if (!rl.success) {
+    return { error: rl.error ?? "Too many requests. Please slow down." };
+  }
+
   const result = createReviewSchema.safeParse(formData);
   if (!result.success) {
     const flat = result.error.flatten().fieldErrors as Record<string, string[]>;

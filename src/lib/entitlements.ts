@@ -12,6 +12,8 @@
 //   `error` is a user-friendly string when `allowed === false`
 // ============================================================================
 
+import "server-only";
+
 import { SupabaseClient } from "@supabase/supabase-js";
 import { PLAN_LIMITS } from "@/config/plans";
 import type { PlanTier } from "@/lib/types";
