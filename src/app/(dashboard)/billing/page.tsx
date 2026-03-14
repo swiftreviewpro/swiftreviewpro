@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { SkeletonCard } from "@/components/shared/loading";
 import { fetchBillingData } from "@/lib/actions/billing-actions";
-import { PLAN_LIMITS } from "@/config/plans";
+import { PLAN_LIMITS, getPlan } from "@/config/plans";
 import type { PlanTier } from "@/lib/types";
 import { BillingActions } from "./_components/billing-actions";
 
@@ -61,14 +61,14 @@ const PLAN_FEATURES: Record<
     ],
   },
   enterprise: {
-    tagline: "For large organizations",
+    tagline: "For agencies and chains",
     features: [
-      "Unlimited locations",
+      "50 locations",
       "Unlimited reviews",
       "Unlimited AI replies",
       "API access",
       "Dedicated support",
-      "Custom integrations",
+      "White-label options",
     ],
   },
 };
@@ -115,7 +115,7 @@ async function BillingContent() {
   const { subscription, locationCount, reviewCountThisMonth, replyCountThisMonth } = data;
   const currentPlan = (subscription?.plan_tier ?? "free") as PlanTier;
   const limits = PLAN_LIMITS[currentPlan];
-  const planLabel = currentPlan.charAt(0).toUpperCase() + currentPlan.slice(1);
+  const planLabel = getPlan(currentPlan).name;
 
   return (
     <div className="space-y-8">
@@ -199,7 +199,7 @@ async function BillingContent() {
                 )}
 
                 <div className="text-center mb-4 pt-2">
-                  <h4 className="font-semibold capitalize">{tier}</h4>
+                  <h4 className="font-semibold">{getPlan(tier).name}</h4>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {planInfo.tagline}
                   </p>

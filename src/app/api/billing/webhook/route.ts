@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/billing/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { PLAN_LIMITS } from "@/config/plans";
+import { PLAN_LIMITS, resolvePlanFromPriceId } from "@/config/plans";
 import type { PlanTier } from "@/lib/types";
 
 export async function POST(request: NextRequest) {
@@ -96,17 +96,33 @@ export async function POST(request: NextRequest) {
           const periodStart = subAny.current_period_start as number | null;
           const periodEnd = subAny.current_period_end as number | null;
 
+          // Resolve plan tier from the active price (handles portal upgrades/downgrades)
+          const items = subAny.items as { data?: { price?: { id?: string } }[] } | undefined;
+          const priceId = items?.data?.[0]?.price?.id;
+          const resolvedPlan = priceId ? resolvePlanFromPriceId(priceId) : null;
+
+          const updatePayload: Record<string, unknown> = {
+            status: subscription.status,
+            current_period_start: periodStart
+              ? new Date(periodStart * 1000).toISOString()
+              : null,
+            current_period_end: periodEnd
+              ? new Date(periodEnd * 1000).toISOString()
+              : null,
+          };
+
+          // If we resolved a plan, update tier + limits
+          if (resolvedPlan) {
+            const limits = PLAN_LIMITS[resolvedPlan];
+            updatePayload.plan_tier = resolvedPlan;
+            updatePayload.review_limit = limits.reviews;
+            updatePayload.reply_limit = limits.replies;
+            updatePayload.location_limit = limits.locations;
+          }
+
           await supabase
             .from("subscriptions")
-            .update({
-              status: subscription.status,
-              current_period_start: periodStart
-                ? new Date(periodStart * 1000).toISOString()
-                : null,
-              current_period_end: periodEnd
-                ? new Date(periodEnd * 1000).toISOString()
-                : null,
-            })
+            .update(updatePayload)
             .eq("organization_id", sub.organization_id);
         }
         break;

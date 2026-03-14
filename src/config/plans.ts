@@ -41,8 +41,8 @@ export const plans: PlanConfig[] = [
   {
     name: "Starter",
     tier: "starter",
-    price: 19,
-    priceLabel: "$19/mo",
+    price: 39,
+    priceLabel: "$39/mo",
     description: "For small businesses",
     features: [
       "1 location",
@@ -58,8 +58,8 @@ export const plans: PlanConfig[] = [
   {
     name: "Growth",
     tier: "growth",
-    price: 49,
-    priceLabel: "$49/mo",
+    price: 79,
+    priceLabel: "$79/mo",
     description: "For growing teams",
     features: [
       "3 locations",
@@ -77,8 +77,8 @@ export const plans: PlanConfig[] = [
   {
     name: "Pro",
     tier: "pro",
-    price: 99,
-    priceLabel: "$99/mo",
+    price: 149,
+    priceLabel: "$149/mo",
     description: "For multi-location brands",
     features: [
       "10 locations",
@@ -94,13 +94,13 @@ export const plans: PlanConfig[] = [
     stripePriceId: process.env.STRIPE_PRO_PRICE_ID,
   },
   {
-    name: "Enterprise",
+    name: "Agency",
     tier: "enterprise",
-    price: 249,
-    priceLabel: "$249/mo",
+    price: 299,
+    priceLabel: "$299/mo",
     description: "For agencies and chains",
     features: [
-      "Unlimited locations",
+      "50 locations",
       "Unlimited reviews",
       "Unlimited AI replies",
       "Google & Yelp integration",
@@ -109,7 +109,7 @@ export const plans: PlanConfig[] = [
       "API access",
       "Dedicated support",
     ],
-    limits: { locations: -1, reviewsPerMonth: -1, aiRepliesPerMonth: -1 },
+    limits: { locations: 50, reviewsPerMonth: -1, aiRepliesPerMonth: -1 },
     stripePriceId: process.env.STRIPE_ENTERPRISE_PRICE_ID,
   },
 ];
@@ -142,4 +142,16 @@ export function getPlan(tier: PlanTier): PlanConfig {
 
 export function isWithinLimit(value: number, limit: number): boolean {
   return limit === -1 || value < limit;
+}
+
+/**
+ * Resolve a PlanTier from a Stripe Price ID.
+ * Used by webhooks to detect plan changes via the Customer Portal.
+ * Returns null if price ID doesn't match any known plan.
+ */
+export function resolvePlanFromPriceId(priceId: string): PlanTier | null {
+  const match = plans.find(
+    (p) => p.stripePriceId && p.stripePriceId === priceId
+  );
+  return match?.tier ?? null;
 }
