@@ -289,31 +289,32 @@ export default function LandingPage() {
             Simple, transparent pricing
           </h2>
           <p className="text-muted-foreground mt-3 text-lg">
-            Start free. Upgrade when you&apos;re ready. No hidden fees.
+            Start with a free trial. Upgrade when you&apos;re ready. Cancel anytime.
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto stagger-children">
           {[
             {
-              name: "Free",
-              price: "$0",
-              desc: "Try it out — no credit card required",
-              features: ["50 reviews/month", "3 AI replies (total)", "1 location", "Basic analytics"],
-            },
-            {
               name: "Starter",
               price: "$39",
               period: "/month",
               desc: "Perfect for small businesses",
-              features: ["200 reviews/month", "100 AI replies/month", "Auto-post to Google", "Google & Yelp integration", "CSV import", "Email support"],
-              popular: true,
+              features: ["1 location", "150 reviews/month", "75 AI replies/month", "Google & Yelp integration", "CSV import", "Email support"],
             },
             {
               name: "Growth",
               price: "$79",
               period: "/month",
               desc: "For growing multi-location brands",
-              features: ["500 reviews/month", "250 AI replies/month", "3 locations", "Auto-post to Google", "Auto-import reviews", "Priority support"],
+              features: ["3 locations", "500 reviews/month", "250 AI replies/month", "Google & Yelp integration", "Auto-import reviews", "Priority support"],
+              popular: true,
+            },
+            {
+              name: "Pro",
+              price: "$149",
+              period: "/month",
+              desc: "For multi-location brands",
+              features: ["10 locations", "2,000 reviews/month", "1,000 AI replies/month", "Auto-post to Google", "Advanced analytics", "API access"],
             },
           ].map((plan) => (
             <div
@@ -354,15 +355,14 @@ export default function LandingPage() {
                     plan.popular ? "btn-gradient border-0" : ""
                   }`}
                 >
-                  {plan.popular ? "Start Free Trial" : plan.name === "Free" ? "Try 3 Free Replies" : "Get Started"}
+                  {plan.popular ? "Start Free Trial" : "Get Started"}
                 </Button>
               </Link>
             </div>
           ))}
         </div>
         <p className="text-center text-sm text-muted-foreground mt-8">
-          Need more? We offer <strong>Pro</strong> ($149/mo) and <strong>Agency</strong> ($299/mo) plans.{" "}
-          <Link href="/signup" className="text-primary font-medium hover:underline">See all plans →</Link>
+          Try SwiftReview Pro free with 5 AI replies — no credit card required.
         </p>
       </section>
 
@@ -379,7 +379,7 @@ export default function LandingPage() {
             Ready to respond smarter?
           </h2>
           <p className="text-white/70 text-lg mb-10 max-w-lg mx-auto">
-            Try 3 AI-powered replies free — no credit card required. Upgrade anytime for unlimited replies and auto-posting.
+            Try 5 AI-powered replies free — no credit card required. Upgrade anytime for more replies and auto-posting.
           </p>
           <Link href="/signup">
             <Button
@@ -392,7 +392,7 @@ export default function LandingPage() {
             </Button>
           </Link>
           <p className="text-white/50 text-sm mt-6">
-            No credit card required · Free plan available forever
+            No credit card required · Free trial included
           </p>
         </div>
       </section>

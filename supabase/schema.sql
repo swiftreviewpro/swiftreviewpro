@@ -116,7 +116,7 @@ CREATE TABLE public.subscriptions (
   organization_id UUID NOT NULL REFERENCES public.organizations(id) ON DELETE CASCADE UNIQUE,
   stripe_customer_id TEXT,
   stripe_subscription_id TEXT,
-  plan_tier TEXT NOT NULL DEFAULT 'free' CHECK (plan_tier IN ('free', 'starter', 'pro', 'enterprise')),
+  plan_tier TEXT NOT NULL DEFAULT 'free' CHECK (plan_tier IN ('free', 'starter', 'growth', 'pro')),
   status TEXT NOT NULL DEFAULT 'active',
   current_period_start TIMESTAMPTZ,
   current_period_end TIMESTAMPTZ,

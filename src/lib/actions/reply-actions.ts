@@ -400,8 +400,8 @@ export async function autoPostReply(reviewId: string): Promise<AutoPostResult> {
     .single();
 
   const tier = (sub?.plan_tier ?? "free") as PlanTier;
-  if (tier === "free") {
-    return { error: "Auto-posting is available on paid plans. Please upgrade.", posted: false, platform: null };
+  if (tier !== "pro") {
+    return { error: "Auto-posting to Google is available on the Pro plan. Please upgrade.", posted: false, platform: null };
   }
 
   // 2. Fetch the review with its approved draft

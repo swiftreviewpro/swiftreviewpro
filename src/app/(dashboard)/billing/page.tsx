@@ -21,11 +21,11 @@ const PLAN_FEATURES: Record<
   { tagline: string; features: string[]; popular?: boolean }
 > = {
   free: {
-    tagline: "Get started",
+    tagline: "Try it free",
     features: [
       "1 location",
-      "50 reviews/mo",
-      "3 AI replies (total)",
+      "25 reviews/mo",
+      "5 AI replies (total)",
       "Basic analytics",
     ],
   },
@@ -33,10 +33,10 @@ const PLAN_FEATURES: Record<
     tagline: "For small businesses",
     features: [
       "1 location",
-      "200 reviews/mo",
-      "100 AI replies/mo",
-      "Auto-post to Google",
+      "150 reviews/mo",
+      "75 AI replies/mo",
       "CSV import",
+      "Google & Yelp integration",
       "Email support",
     ],
   },
@@ -46,7 +46,7 @@ const PLAN_FEATURES: Record<
       "3 locations",
       "500 reviews/mo",
       "250 AI replies/mo",
-      "Auto-post to Google",
+      "Auto-import reviews",
       "CSV import",
       "Priority support",
     ],
@@ -59,19 +59,9 @@ const PLAN_FEATURES: Record<
       "2,000 reviews/mo",
       "1,000 AI replies/mo",
       "Auto-post to Google",
+      "Advanced analytics",
       "Priority support",
       "API access",
-    ],
-  },
-  enterprise: {
-    tagline: "For agencies and chains",
-    features: [
-      "50 locations",
-      "Unlimited reviews",
-      "Unlimited AI replies",
-      "API access",
-      "Dedicated support",
-      "Auto-post replies",
     ],
   },
 };
@@ -88,8 +78,8 @@ export default function BillingPage() {
         fallback={
           <div className="space-y-6">
             <SkeletonCard className="h-40" />
-            <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-4">
-              {Array.from({ length: 5 }, (_, i) => (
+            <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }, (_, i) => (
                 <SkeletonCard key={i} className="h-80" />
               ))}
             </div>
@@ -135,7 +125,7 @@ async function BillingContent() {
             </div>
             <p className="text-sm text-muted-foreground mt-1.5">
               {currentPlan === "free"
-                ? "You're on the free plan with 3 AI replies. Upgrade to unlock unlimited replies and auto-posting."
+                ? "You're on the free trial with 5 AI replies. Upgrade to unlock more replies and auto-posting."
                 : `You're on the ${planLabel} plan at $${limits.price}/month.`}
             </p>
           </div>
@@ -178,9 +168,9 @@ async function BillingContent() {
           Choose the plan that fits your business
         </p>
 
-        <div className="grid md:grid-cols-2 xl:grid-cols-5 gap-5">
+        <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5">
           {(
-            ["free", "starter", "growth", "pro", "enterprise"] as PlanTier[]
+            ["free", "starter", "growth", "pro"] as PlanTier[]
           ).map((tier) => {
             const planInfo = PLAN_FEATURES[tier];
             const planLimits = PLAN_LIMITS[tier];

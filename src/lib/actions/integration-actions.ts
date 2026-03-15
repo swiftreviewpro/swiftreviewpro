@@ -38,7 +38,7 @@ async function getAuthContext() {
 
 // ---- Paid plan gate ----
 
-const PAID_TIERS: PlanTier[] = ["starter", "growth", "pro", "enterprise"];
+const PAID_TIERS: PlanTier[] = ["starter", "growth", "pro"];
 
 async function requirePaidPlan(): Promise<{
   ctx: Awaited<ReturnType<typeof getAuthContext>>;

@@ -25,7 +25,7 @@ export function BillingActions({
 }: BillingActionsProps) {
   const [isPending, startTransition] = useTransition();
 
-  const handleUpgrade = (plan: "starter" | "growth" | "pro" | "enterprise") => {
+  const handleUpgrade = (plan: "starter" | "growth" | "pro") => {
     startTransition(async () => {
       const result = await createCheckoutSession(plan);
       if (result.error) {
@@ -90,7 +90,7 @@ export function BillingActions({
       <Button
         className="w-full"
         onClick={() =>
-          handleUpgrade(targetPlan as "starter" | "growth" | "pro" | "enterprise")
+          handleUpgrade(targetPlan as "starter" | "growth" | "pro")
         }
         disabled={isPending}
       >

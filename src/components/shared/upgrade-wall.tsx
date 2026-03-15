@@ -54,11 +54,11 @@ export function UpgradeWall({
         </div>
         <Sparkles className="w-8 h-8 text-primary mx-auto mb-3" />
         <h4 className="font-bold text-base mb-1">
-          You&apos;ve used all {usage.limit} free AI replies
+          You&apos;ve used all {usage.limit} free trial AI replies
         </h4>
         <p className="text-sm text-muted-foreground mb-4 max-w-sm mx-auto">
-          Upgrade to a paid plan for unlimited AI replies, auto-posting to Google,
-          platform integrations, and more.
+          Upgrade to a paid plan for more AI replies, platform integrations,
+          and powerful review management features.
         </p>
         <Link href="/billing" onClick={onUpgradeClick}>
           <Button className="btn-gradient border-0 h-10 px-6">
@@ -68,7 +68,7 @@ export function UpgradeWall({
           </Button>
         </Link>
         <p className="text-[11px] text-muted-foreground mt-3">
-          Cancel anytime · All plans include a free trial
+          Cancel anytime · Simple, transparent pricing
         </p>
       </div>
     );
@@ -82,7 +82,7 @@ export function UpgradeWall({
         <p className="text-xs text-amber-800 dark:text-amber-300 flex-1">
           <span className="font-semibold">{remaining}</span> of {usage.limit} free AI replies remaining.{" "}
           <Link href="/billing" className="font-semibold underline underline-offset-2 hover:no-underline">
-            Upgrade for unlimited
+            Upgrade for more
           </Link>
         </p>
       </div>

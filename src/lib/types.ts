@@ -50,7 +50,7 @@ export type IntegrationProvider = (typeof INTEGRATION_PROVIDERS)[number];
 export const MEMBER_ROLES = ["owner", "admin", "member"] as const;
 export type MemberRole = (typeof MEMBER_ROLES)[number];
 
-export type PlanTier = "free" | "starter" | "growth" | "pro" | "enterprise";
+export type PlanTier = "free" | "starter" | "growth" | "pro";
 
 export type SubscriptionStatus =
   | "active"

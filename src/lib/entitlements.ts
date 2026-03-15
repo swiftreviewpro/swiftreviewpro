@@ -6,8 +6,7 @@
 // from the `subscriptions` table (which mirrors PLAN_LIMITS at provision time)
 // and fall back to PLAN_LIMITS[plan] if the subscription row is missing.
 //
-// Convention:
-//   -1 = unlimited (enterprise tier)
+//   Convention:
 //   Returns `{ allowed, current, limit, plan, error? }`
 //   `error` is a user-friendly string when `allowed === false`
 // ============================================================================
@@ -144,7 +143,7 @@ export async function checkReplyEntitlement(
     plan: sub.plan,
     ...(!allowed && {
       error: isFree
-        ? `You've used all ${sub.replyLimit} free AI replies. Upgrade to a paid plan for unlimited replies.`
+        ? `You've used all ${sub.replyLimit} free trial AI replies. Upgrade to a paid plan for more.`
         : `Monthly AI reply limit reached (${sub.replyLimit}). Upgrade your plan for more replies.`,
     }),
   };

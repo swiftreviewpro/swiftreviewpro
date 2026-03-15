@@ -94,7 +94,7 @@ export async function fetchBillingData(): Promise<{
 // ============================================================================
 
 export async function createCheckoutSession(
-  plan: "starter" | "growth" | "pro" | "enterprise"
+  plan: "starter" | "growth" | "pro"
 ): Promise<{ error: string | null; url: string | null }> {
   const ctx = await getAuthContext();
   if (!ctx) return { error: "Unauthorized", url: null };

@@ -27,18 +27,18 @@ export interface PlanConfig {
 
 export const plans: PlanConfig[] = [
   {
-    name: "Free",
+    name: "Free Trial",
     tier: "free",
     price: 0,
     priceLabel: "$0",
-    description: "Perfect for trying it out",
+    description: "Try it free — 5 AI replies, no credit card",
     features: [
       "1 location",
-      "50 reviews/month",
-      "3 AI replies (total)",
+      "25 reviews/month",
+      "5 AI replies (total)",
       "Basic analytics",
     ],
-    limits: { locations: 1, reviewsPerMonth: 50, aiRepliesPerMonth: 3 },
+    limits: { locations: 1, reviewsPerMonth: 25, aiRepliesPerMonth: 5 },
   },
   {
     name: "Starter",
@@ -48,14 +48,13 @@ export const plans: PlanConfig[] = [
     description: "For small businesses",
     features: [
       "1 location",
-      "200 reviews/month",
-      "100 AI replies/month",
+      "150 reviews/month",
+      "75 AI replies/month",
       "CSV import",
       "Google & Yelp integration",
-      "Auto-post to Google",
       "Email support",
     ],
-    limits: { locations: 1, reviewsPerMonth: 200, aiRepliesPerMonth: 100 },
+    limits: { locations: 1, reviewsPerMonth: 150, aiRepliesPerMonth: 75 },
     stripePriceId: process.env.STRIPE_STARTER_PRICE_ID,
   },
   {
@@ -71,7 +70,6 @@ export const plans: PlanConfig[] = [
       "CSV import",
       "Google & Yelp integration",
       "Auto-import reviews",
-      "Auto-post to Google",
       "Priority support",
     ],
     limits: { locations: 3, reviewsPerMonth: 500, aiRepliesPerMonth: 250 },
@@ -97,25 +95,6 @@ export const plans: PlanConfig[] = [
     ],
     limits: { locations: 10, reviewsPerMonth: 2000, aiRepliesPerMonth: 1000 },
     stripePriceId: process.env.STRIPE_PRO_PRICE_ID,
-  },
-  {
-    name: "Agency",
-    tier: "enterprise",
-    price: 299,
-    priceLabel: "$299/mo",
-    description: "For agencies and chains",
-    features: [
-      "50 locations",
-      "Unlimited reviews",
-      "Unlimited AI replies",
-      "Google & Yelp integration",
-      "Auto-import reviews",
-      "Auto-post replies",
-      "API access",
-      "Dedicated support",
-    ],
-    limits: { locations: 50, reviewsPerMonth: -1, aiRepliesPerMonth: -1 },
-    stripePriceId: process.env.STRIPE_ENTERPRISE_PRICE_ID,
   },
 ];
 
