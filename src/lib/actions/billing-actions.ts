@@ -175,6 +175,43 @@ export async function createPortalSession(): Promise<{
 }
 
 // ============================================================================
+// Cancel Subscription (sets cancel_at_period_end)
+// ============================================================================
+
+export async function cancelSubscription(): Promise<{
+  error: string | null;
+  success: boolean;
+}> {
+  const ctx = await getAuthContext();
+  if (!ctx) return { error: "Unauthorized", success: false };
+
+  const { data: sub } = await ctx.supabase
+    .from("subscriptions")
+    .select("stripe_subscription_id, plan_tier")
+    .eq("organization_id", ctx.orgId)
+    .single();
+
+  if (!sub?.stripe_subscription_id) {
+    return { error: "No active subscription found", success: false };
+  }
+
+  if (sub.plan_tier === "free") {
+    return { error: "You are already on the free plan", success: false };
+  }
+
+  try {
+    await getStripe().subscriptions.update(sub.stripe_subscription_id, {
+      cancel_at_period_end: true,
+    });
+
+    return { error: null, success: true };
+  } catch (err) {
+    console.error("Cancel subscription error:", err);
+    return { error: "Failed to cancel subscription. Please try again.", success: false };
+  }
+}
+
+// ============================================================================
 // Check location limit (delegates to centralized entitlement helper)
 // ============================================================================
 

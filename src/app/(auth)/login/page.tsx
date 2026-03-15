@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { signIn, type AuthActionState } from "@/lib/auth/actions";
 import { IS_DEMO_MODE } from "@/lib/demo";
+import { GoogleSignInButton } from "@/components/shared/google-sign-in-button";
 
 const initialState: AuthActionState = { error: null };
 
@@ -99,6 +100,17 @@ export default function LoginPage() {
               {isPending ? "Signing in…" : "Sign In"}
             </Button>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">or</span>
+            </div>
+          </div>
+
+          <GoogleSignInButton label="Sign in with Google" />
 
           <Separator className="my-6" />
 

@@ -2,7 +2,8 @@
 // Auth Callback — Handles Supabase Auth code exchange
 // ============================================================================
 // This route is called after email confirmation (signup, magic link, password
-// reset). It exchanges the auth code for a session, then redirects.
+// reset) AND after OAuth sign-in (Google). It exchanges the auth code for a
+// session, then redirects based on onboarding status.
 // ============================================================================
 
 import { NextResponse } from "next/server";
@@ -25,17 +26,16 @@ export async function GET(request: Request) {
       } = await supabase.auth.getUser();
 
       if (user) {
-        if (!(await hasCompletedOnboarding(supabase, user.id))) {
-          return NextResponse.redirect(
-            `${origin}/confirm?next=${encodeURIComponent("/onboarding")}`
-          );
-        }
-      }
+        const onboarded = await hasCompletedOnboarding(supabase, user.id);
 
-      // Confirmed + onboarded — send through confirmation page then to dashboard
-      return NextResponse.redirect(
-        `${origin}/confirm?next=${encodeURIComponent(next)}`
-      );
+        if (!onboarded) {
+          // New user (email or Google) — send to onboarding
+          return NextResponse.redirect(`${origin}/onboarding`);
+        }
+
+        // Returning user — send to dashboard (or the `next` param)
+        return NextResponse.redirect(`${origin}${next}`);
+      }
     }
   }
 

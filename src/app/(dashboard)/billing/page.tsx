@@ -9,6 +9,7 @@ import { fetchBillingData } from "@/lib/actions/billing-actions";
 import { PLAN_LIMITS, getPlan } from "@/config/plans";
 import type { PlanTier } from "@/lib/types";
 import { BillingActions } from "./_components/billing-actions";
+import { CancelSubscription } from "./_components/cancel-subscription";
 
 export const metadata: Metadata = {
   title: "Billing | SwiftReview Pro",
@@ -246,6 +247,11 @@ async function BillingContent() {
           })}
         </div>
       </div>
+
+      {/* Cancel Subscription — only for paid users with active Stripe subscription */}
+      {currentPlan !== "free" && subscription?.stripe_subscription_id && (
+        <CancelSubscription periodEnd={subscription.current_period_end} />
+      )}
     </div>
   );
 }

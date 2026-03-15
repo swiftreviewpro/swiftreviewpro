@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { signUp, type AuthActionState } from "@/lib/auth/actions";
+import { GoogleSignInButton } from "@/components/shared/google-sign-in-button";
 
 const initialState: AuthActionState = { error: null };
 
@@ -91,10 +92,47 @@ export default function SignUpPage() {
                 </p>
               )}
             </div>
+            <div className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                id="terms"
+                name="terms"
+                required
+                className="mt-1 h-4 w-4 rounded border-gray-300 accent-primary"
+              />
+              <label htmlFor="terms" className="text-xs text-muted-foreground">
+                I agree to the{" "}
+                <a href="/terms" target="_blank" className="text-primary hover:underline">
+                  Terms of Service
+                </a>{" "}
+                and{" "}
+                <a href="/privacy" target="_blank" className="text-primary hover:underline">
+                  Privacy Policy
+                </a>
+              </label>
+            </div>
             <Button type="submit" className="w-full h-10 rounded-xl btn-gradient border-0 font-semibold" disabled={isPending}>
               {isPending ? "Creating account…" : "Create Account"}
             </Button>
           </form>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">or</span>
+            </div>
+          </div>
+
+          <GoogleSignInButton label="Sign up with Google" />
+
+          <p className="mt-3 text-[11px] text-center text-muted-foreground">
+            By signing up with Google, you agree to our{" "}
+            <a href="/terms" target="_blank" className="text-primary hover:underline">Terms</a>{" "}
+            and{" "}
+            <a href="/privacy" target="_blank" className="text-primary hover:underline">Privacy Policy</a>
+          </p>
 
           <Separator className="my-6" />
 
