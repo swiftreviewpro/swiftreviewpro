@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Copy,
   Check,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Review, ReplyDraft, ReviewStatus } from "@/lib/types";
@@ -24,7 +25,9 @@ import {
   saveDraft,
   approveDraft,
   markDraftPosted,
+  autoPostReply,
 } from "@/lib/actions/reply-actions";
+import { UpgradeWall } from "@/components/shared/upgrade-wall";
 
 interface ReplyEditorProps {
   review: Review;
@@ -41,6 +44,7 @@ export function ReplyEditor({ review, onUpdated }: ReplyEditorProps) {
   const [isSaving, startSaving] = useTransition();
   const [isApproving, startApproving] = useTransition();
   const [isPosting, startPosting] = useTransition();
+  const [isAutoPosting, startAutoPosting] = useTransition();
 
   const [draft, setDraft] = useState<ReplyDraft | null>(latestDraft);
   const [editContent, setEditContent] = useState(latestDraft?.content ?? "");
@@ -59,10 +63,11 @@ export function ReplyEditor({ review, onUpdated }: ReplyEditorProps) {
     setHasUnsavedChanges(false);
   }, [review]);
 
-  const isPending = isGenerating || isSaving || isApproving || isPosting;
+  const isPending = isGenerating || isSaving || isApproving || isPosting || isAutoPosting;
   const hasDraft = !!draft;
   const isApproved = draft?.is_approved ?? false;
   const isPosted = !!draft?.posted_at;
+  const isGoogleReview = review.source === "google_business" && !!review.external_id;
 
   // ---- Generate / Regenerate ----
   const handleGenerate = useCallback(() => {
@@ -144,6 +149,19 @@ export function ReplyEditor({ review, onUpdated }: ReplyEditorProps) {
     });
   }, [review.id, onUpdated]);
 
+  // ---- Auto-post to Google ----
+  const handleAutoPost = useCallback(() => {
+    startAutoPosting(async () => {
+      const result = await autoPostReply(review.id);
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success("Reply posted to Google Business!");
+      onUpdated();
+    });
+  }, [review.id, onUpdated]);
+
   // ---- Copy to clipboard ----
   const handleCopy = useCallback(() => {
     const text = editContent || draft?.content || "";
@@ -164,6 +182,9 @@ export function ReplyEditor({ review, onUpdated }: ReplyEditorProps) {
 
   return (
     <div className="space-y-3">
+      {/* Upgrade prompt for free users */}
+      <UpgradeWall />
+
       <div className="flex items-center gap-2">
         <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
         <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -345,10 +366,26 @@ export function ReplyEditor({ review, onUpdated }: ReplyEditorProps) {
               </Button>
             )}
 
-            {/* Mark as Posted */}
+            {/* Post to Google / Mark as Posted */}
+            {isApproved && !isPosted && isGoogleReview && (
+              <Button
+                size="sm"
+                onClick={handleAutoPost}
+                disabled={isPending}
+                className="btn-gradient border-0"
+              >
+                {isAutoPosting ? (
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Zap className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                Post to Google
+              </Button>
+            )}
             {isApproved && !isPosted && (
               <Button
                 size="sm"
+                variant={isGoogleReview ? "outline" : "default"}
                 onClick={handleMarkPosted}
                 disabled={isPending}
               >

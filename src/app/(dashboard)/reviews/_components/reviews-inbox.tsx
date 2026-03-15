@@ -102,6 +102,12 @@ export function ReviewsInbox() {
         setReviews(result.data);
         setTotal(result.total);
         setTotalPages(result.totalPages);
+        // Keep selectedReview in sync with fresh server data
+        setSelectedReview((prev) => {
+          if (!prev) return null;
+          const updated = result.data.find((r) => r.id === prev.id);
+          return updated ?? null;
+        });
       } else {
         toast.error(result.error ?? "Failed to load reviews");
       }

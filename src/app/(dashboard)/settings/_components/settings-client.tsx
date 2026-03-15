@@ -7,6 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import type { BrandSettings, Organization } from "@/lib/types";
@@ -39,6 +46,20 @@ export function SettingsClient({
   );
 }
 
+// ---------- Tone presets ----------
+
+const TONE_PRESETS = [
+  { value: "professional", label: "Professional", desc: "Clear, polished, and business-appropriate" },
+  { value: "friendly", label: "Friendly", desc: "Warm, approachable, and personable" },
+  { value: "professional_friendly", label: "Professional & Friendly", desc: "Balanced warmth with professionalism" },
+  { value: "casual", label: "Casual", desc: "Relaxed, conversational, informal" },
+  { value: "formal", label: "Formal", desc: "Respectful, traditional, courteous" },
+  { value: "empathetic", label: "Empathetic", desc: "Understanding, compassionate, caring" },
+  { value: "enthusiastic", label: "Enthusiastic", desc: "Energetic, positive, excited" },
+  { value: "direct", label: "Direct", desc: "Concise, to-the-point, no fluff" },
+  { value: "custom", label: "Custom", desc: "Write your own tone description" },
+] as const;
+
 // ---------- Brand Voice Form ----------
 
 function BrandVoiceForm({
@@ -49,7 +70,17 @@ function BrandVoiceForm({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const [tone, setTone] = useState(initialData?.tone ?? "");
+  // Determine if the saved tone matches a preset
+  const savedTone = initialData?.tone ?? "";
+  const matchesPreset = TONE_PRESETS.some(
+    (p) => p.value !== "custom" && (p.value === savedTone || p.label === savedTone)
+  );
+  const initialPreset = matchesPreset
+    ? TONE_PRESETS.find((p) => p.value === savedTone || p.label === savedTone)?.value ?? "custom"
+    : savedTone ? "custom" : "";
+
+  const [tonePreset, setTonePreset] = useState(initialPreset);
+  const [customTone, setCustomTone] = useState(matchesPreset ? "" : savedTone);
   const [styleNotes, setStyleNotes] = useState(
     initialData?.style_notes ?? ""
   );
@@ -66,13 +97,18 @@ function BrandVoiceForm({
     initialData?.additional_instructions ?? ""
   );
 
+  // Resolve effective tone value
+  const effectiveTone = tonePreset === "custom"
+    ? customTone
+    : TONE_PRESETS.find((p) => p.value === tonePreset)?.label ?? "";
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
       setError(null);
       startTransition(async () => {
         const result = await updateBrandSettings({
-          tone,
+          tone: effectiveTone,
           style_notes: styleNotes,
           banned_phrases: bannedPhrases,
           signature_line: signatureLine,
@@ -88,7 +124,7 @@ function BrandVoiceForm({
       });
     },
     [
-      tone,
+      effectiveTone,
       styleNotes,
       bannedPhrases,
       signatureLine,
@@ -108,13 +144,31 @@ function BrandVoiceForm({
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
           <Label>Tone *</Label>
-          <Input
-            value={tone}
-            onChange={(e) => setTone(e.target.value)}
-            placeholder="e.g., Professional and friendly"
-          />
+          <Select value={tonePreset} onValueChange={(v) => v && setTonePreset(v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose a tone…" />
+            </SelectTrigger>
+            <SelectContent>
+              {TONE_PRESETS.map((preset) => (
+                <SelectItem key={preset.value} value={preset.value}>
+                  <div className="flex flex-col">
+                    <span>{preset.label}</span>
+                    <span className="text-xs text-muted-foreground">{preset.desc}</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {tonePreset === "custom" && (
+            <Input
+              value={customTone}
+              onChange={(e) => setCustomTone(e.target.value)}
+              placeholder="e.g., Professional but warm with a hint of humor"
+              className="mt-2"
+            />
+          )}
           <p className="text-caption">
-            Choose a preset or type a custom description
+            Pick a preset tone or choose &ldquo;Custom&rdquo; to write your own
           </p>
         </div>
 
@@ -182,7 +236,7 @@ function BrandVoiceForm({
         )}
 
         <div className="flex justify-end pt-2">
-          <Button type="submit" disabled={isPending || !tone.trim()}>
+          <Button type="submit" disabled={isPending || !effectiveTone.trim()}>
             {isPending ? (
               <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
             ) : (

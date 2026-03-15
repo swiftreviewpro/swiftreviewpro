@@ -203,7 +203,7 @@ export default function LandingPage() {
               {
                 step: "3",
                 title: "Approve & Post",
-                desc: "Review, edit if needed, and post responses directly to the platform.",
+                desc: "Review, edit if needed, and auto-post directly to Google — or copy for other platforms.",
                 icon: CheckCircle2,
               },
             ].map((s) => (
@@ -298,14 +298,14 @@ export default function LandingPage() {
               name: "Free",
               price: "$0",
               desc: "Try it out — no credit card required",
-              features: ["50 reviews/month", "20 AI replies", "1 location", "Basic analytics"],
+              features: ["50 reviews/month", "3 AI replies (total)", "1 location", "Basic analytics"],
             },
             {
               name: "Starter",
               price: "$39",
               period: "/month",
               desc: "Perfect for small businesses",
-              features: ["200 reviews/month", "100 AI replies", "1 location", "Full analytics", "CSV import", "Email support"],
+              features: ["200 reviews/month", "100 AI replies/month", "Auto-post to Google", "Google & Yelp integration", "CSV import", "Email support"],
               popular: true,
             },
             {
@@ -313,7 +313,7 @@ export default function LandingPage() {
               price: "$79",
               period: "/month",
               desc: "For growing multi-location brands",
-              features: ["500 reviews/month", "250 AI replies", "3 locations", "Full analytics", "Priority support"],
+              features: ["500 reviews/month", "250 AI replies/month", "3 locations", "Auto-post to Google", "Auto-import reviews", "Priority support"],
             },
           ].map((plan) => (
             <div
@@ -354,7 +354,7 @@ export default function LandingPage() {
                     plan.popular ? "btn-gradient border-0" : ""
                   }`}
                 >
-                  {plan.popular ? "Start Free Trial" : "Get Started"}
+                  {plan.popular ? "Start Free Trial" : plan.name === "Free" ? "Try 3 Free Replies" : "Get Started"}
                 </Button>
               </Link>
             </div>
@@ -379,7 +379,7 @@ export default function LandingPage() {
             Ready to respond smarter?
           </h2>
           <p className="text-white/70 text-lg mb-10 max-w-lg mx-auto">
-            Start managing your reviews smarter with AI-powered responses — free plan available.
+            Try 3 AI-powered replies free — no credit card required. Upgrade anytime for unlimited replies and auto-posting.
           </p>
           <Link href="/signup">
             <Button

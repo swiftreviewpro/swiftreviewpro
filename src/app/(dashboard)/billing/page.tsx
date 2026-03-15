@@ -24,7 +24,7 @@ const PLAN_FEATURES: Record<
     features: [
       "1 location",
       "50 reviews/mo",
-      "20 AI replies/mo",
+      "3 AI replies (total)",
       "Basic analytics",
     ],
   },
@@ -34,6 +34,7 @@ const PLAN_FEATURES: Record<
       "1 location",
       "200 reviews/mo",
       "100 AI replies/mo",
+      "Auto-post to Google",
       "CSV import",
       "Email support",
     ],
@@ -44,6 +45,7 @@ const PLAN_FEATURES: Record<
       "3 locations",
       "500 reviews/mo",
       "250 AI replies/mo",
+      "Auto-post to Google",
       "CSV import",
       "Priority support",
     ],
@@ -55,7 +57,7 @@ const PLAN_FEATURES: Record<
       "10 locations",
       "2,000 reviews/mo",
       "1,000 AI replies/mo",
-      "CSV import",
+      "Auto-post to Google",
       "Priority support",
       "API access",
     ],
@@ -68,7 +70,7 @@ const PLAN_FEATURES: Record<
       "Unlimited AI replies",
       "API access",
       "Dedicated support",
-      "White-label options",
+      "Auto-post replies",
     ],
   },
 };
@@ -132,7 +134,7 @@ async function BillingContent() {
             </div>
             <p className="text-sm text-muted-foreground mt-1.5">
               {currentPlan === "free"
-                ? "You're on the free tier. Upgrade for more features."
+                ? "You're on the free plan with 3 AI replies. Upgrade to unlock unlimited replies and auto-posting."
                 : `You're on the ${planLabel} plan at $${limits.price}/month.`}
             </p>
           </div>

@@ -288,6 +288,53 @@ export function buildEncryptedGoogleCreds(creds: GoogleCredentials): string {
   return encryptCredentials(creds);
 }
 
+/**
+ * Post a reply to a Google Business review.
+ * Uses the GBP API's updateReply endpoint.
+ */
+export async function postGoogleReviewReply(
+  encryptedCreds: string,
+  externalReviewId: string,
+  replyText: string
+): Promise<{ success: boolean; error: string | null; updatedEncryptedCreds: string | null }> {
+  const creds = decryptCredentials<GoogleCredentials>(encryptedCreds);
+  if (!creds) {
+    return { success: false, error: "Failed to decrypt Google credentials. Please reconnect.", updatedEncryptedCreds: null };
+  }
+
+  let { access_token } = creds;
+  let updatedEncryptedCreds: string | null = null;
+
+  // Refresh token first (they expire every hour)
+  const refreshed = await refreshGoogleToken(creds.refresh_token);
+  if (refreshed) {
+    access_token = refreshed.access_token;
+    updatedEncryptedCreds = encryptCredentials({ ...creds, access_token });
+  }
+
+  const url = `${GBP_API_BASE}/accounts/${creds.account_id}/locations/${creds.location_id}/reviews/${externalReviewId}/reply`;
+
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ comment: replyText }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    console.error("[Google] Reply post failed:", res.status, body);
+    if (res.status === 401 || res.status === 403) {
+      return { success: false, error: "Google authorization expired. Please reconnect.", updatedEncryptedCreds };
+    }
+    return { success: false, error: `Failed to post reply to Google (${res.status}).`, updatedEncryptedCreds };
+  }
+
+  return { success: true, error: null, updatedEncryptedCreds };
+}
+
 // ---------- Helpers ----------
 
 /**

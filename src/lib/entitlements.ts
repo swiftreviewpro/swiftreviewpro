@@ -119,11 +119,20 @@ export async function checkReplyEntitlement(
     return { allowed: true, current: 0, limit: -1, plan: sub.plan };
   }
 
-  const { count: existing } = await supabase
+  // Free plan: count TOTAL replies ever (lifetime cap, not monthly)
+  // Paid plans: count replies this month only
+  const isFree = sub.plan === "free";
+
+  let countQuery = supabase
     .from("reply_drafts")
     .select("id", { count: "exact", head: true })
-    .eq("organization_id", orgId)
-    .gte("created_at", startOfMonth());
+    .eq("organization_id", orgId);
+
+  if (!isFree) {
+    countQuery = countQuery.gte("created_at", startOfMonth());
+  }
+
+  const { count: existing } = await countQuery;
 
   const current = existing ?? 0;
   const allowed = current < sub.replyLimit;
@@ -134,7 +143,9 @@ export async function checkReplyEntitlement(
     limit: sub.replyLimit,
     plan: sub.plan,
     ...(!allowed && {
-      error: `Monthly AI reply limit reached (${sub.replyLimit}). Upgrade your plan for more replies.`,
+      error: isFree
+        ? `You've used all ${sub.replyLimit} free AI replies. Upgrade to a paid plan for unlimited replies.`
+        : `Monthly AI reply limit reached (${sub.replyLimit}). Upgrade your plan for more replies.`,
     }),
   };
 }

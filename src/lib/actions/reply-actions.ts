@@ -13,7 +13,7 @@ import { generateReply } from "@/lib/ai/generate";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { checkReplyEntitlement } from "@/lib/entitlements";
 import type { PromptContext } from "@/lib/ai/prompts";
-import type { ReplyDraft, BrandSettings, Organization, ReviewStatus } from "@/lib/types";
+import type { ReplyDraft, BrandSettings, Organization, ReviewStatus, PlanTier } from "@/lib/types";
 import { isValidStatusTransition } from "@/lib/types";
 
 // ---- Auth helper (shared with review-actions) ----
@@ -43,6 +43,30 @@ async function getAuthContext() {
 export interface DraftActionResult {
   error: string | null;
   data?: ReplyDraft | null;
+}
+
+export interface ReplyUsageResult {
+  current: number;
+  limit: number;
+  plan: PlanTier;
+  allowed: boolean;
+}
+
+// ============================================================================
+// Get Reply Usage (for UI upgrade prompts)
+// ============================================================================
+
+export async function getReplyUsage(): Promise<ReplyUsageResult> {
+  const ctx = await getAuthContext();
+  if (!ctx) return { current: 0, limit: 3, plan: "free", allowed: false };
+
+  const result = await checkReplyEntitlement(ctx.supabase, ctx.orgId);
+  return {
+    current: result.current,
+    limit: result.limit,
+    plan: result.plan,
+    allowed: result.allowed,
+  };
 }
 
 // ============================================================================
@@ -349,4 +373,122 @@ export async function markDraftPosted(
 
   revalidatePath("/reviews");
   return { error: null, data: draft ? (draft as ReplyDraft) : null };
+}
+
+// ============================================================================
+// Auto-Post Reply to Google Business (paid-only)
+// ============================================================================
+// Yelp does not support posting replies via API — only Google Business.
+// This is called when users click "Post to Google" on an approved draft.
+// ============================================================================
+
+export interface AutoPostResult {
+  error: string | null;
+  posted: boolean;
+  platform: string | null;
+}
+
+export async function autoPostReply(reviewId: string): Promise<AutoPostResult> {
+  const ctx = await getAuthContext();
+  if (!ctx) return { error: "You must be logged in.", posted: false, platform: null };
+
+  // 1. Check paid plan
+  const { data: sub } = await ctx.supabase
+    .from("subscriptions")
+    .select("plan_tier")
+    .eq("organization_id", ctx.orgId)
+    .single();
+
+  const tier = (sub?.plan_tier ?? "free") as PlanTier;
+  if (tier === "free") {
+    return { error: "Auto-posting is available on paid plans. Please upgrade.", posted: false, platform: null };
+  }
+
+  // 2. Fetch the review with its approved draft
+  const { data: review } = await ctx.supabase
+    .from("reviews")
+    .select("*, reply_drafts(*)")
+    .eq("id", reviewId)
+    .eq("organization_id", ctx.orgId)
+    .single();
+
+  if (!review) return { error: "Review not found.", posted: false, platform: null };
+
+  // Must be approved or draft_generated
+  if (!isValidStatusTransition(review.status as ReviewStatus, "posted")) {
+    return { error: `Cannot post — review is in "${review.status}" status.`, posted: false, platform: null };
+  }
+
+  // Get the latest approved draft
+  const approvedDraft = (review.reply_drafts ?? [])
+    .filter((d: ReplyDraft) => d.is_approved)
+    .sort((a: ReplyDraft, b: ReplyDraft) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+
+  if (!approvedDraft) {
+    return { error: "No approved draft found. Please approve a draft first.", posted: false, platform: null };
+  }
+
+  // 3. Check if this review came from Google and has an external_id
+  const source = review.source as string;
+  if (source !== "google_business" || !review.external_id) {
+    return { error: "Auto-post is only available for Google Business reviews with a linked integration.", posted: false, platform: null };
+  }
+
+  // 4. Find the active Google integration for this location
+  const { data: integration } = await ctx.supabase
+    .from("integrations")
+    .select("id, credentials, status")
+    .eq("organization_id", ctx.orgId)
+    .eq("provider", "google_business")
+    .eq("location_id", review.location_id)
+    .eq("status", "active")
+    .single();
+
+  if (!integration) {
+    return { error: "No active Google Business integration found for this location.", posted: false, platform: null };
+  }
+
+  // 5. Post the reply via Google API
+  const { postGoogleReviewReply } = await import("@/lib/integrations/google-business");
+  const result = await postGoogleReviewReply(
+    integration.credentials,
+    review.external_id,
+    approvedDraft.content
+  );
+
+  if (result.updatedEncryptedCreds) {
+    await ctx.supabase
+      .from("integrations")
+      .update({ credentials: result.updatedEncryptedCreds })
+      .eq("id", integration.id);
+  }
+
+  if (!result.success) {
+    return { error: result.error ?? "Failed to post reply to Google.", posted: false, platform: "google" };
+  }
+
+  // 6. Mark draft as posted and update review status
+  await ctx.supabase
+    .from("reply_drafts")
+    .update({ posted_at: new Date().toISOString() })
+    .eq("id", approvedDraft.id);
+
+  await ctx.supabase
+    .from("reviews")
+    .update({ status: "posted" })
+    .eq("id", reviewId)
+    .eq("organization_id", ctx.orgId);
+
+  await ctx.supabase.from("activity_logs").insert({
+    organization_id: ctx.orgId,
+    user_id: ctx.userId,
+    action: "reply.auto_posted",
+    entity_type: "review",
+    entity_id: reviewId,
+    metadata: { platform: "google_business", draft_id: approvedDraft.id },
+  });
+
+  revalidatePath("/reviews");
+  revalidatePath("/integrations");
+  return { error: null, posted: true, platform: "google" };
 }
