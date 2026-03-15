@@ -56,12 +56,6 @@ export const FILTER_TABS = [
 export const PLATFORMS = [
   "Google",
   "Yelp",
-  "Facebook",
-  "TripAdvisor",
-  "Trustpilot",
-  "BBB",
-  "Healthgrades",
-  "Zocdoc",
   "Other",
 ] as const;
 

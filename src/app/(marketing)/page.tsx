@@ -8,10 +8,8 @@ import {
   CheckCircle2,
   Star,
   Sparkles,
-  Clock,
   TrendingUp,
   Globe,
-  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -35,7 +33,7 @@ export default function LandingPage() {
           {/* Trust pill */}
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold mb-8 animate-fade-in">
             <Sparkles className="w-3.5 h-3.5" />
-            Trusted by 2,000+ Local Businesses
+            AI-Powered Review Management
           </div>
 
           <h1 className="text-display md:text-5xl lg:text-6xl xl:text-7xl max-w-4xl mx-auto mb-6 animate-slide-up">
@@ -62,29 +60,21 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* Social proof row */}
+          {/* Value props row */}
           <div className="mt-14 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: "400ms" }}>
             <div className="flex items-center gap-1.5">
-              <div className="flex -space-x-2">
-                {["bg-indigo-400", "bg-violet-400", "bg-blue-400", "bg-purple-400"].map((bg, i) => (
-                  <div key={i} className={`w-7 h-7 rounded-full ${bg} border-2 border-background flex items-center justify-center text-[10px] font-bold text-white`}>
-                    {["J", "S", "M", "A"][i]}
-                  </div>
-                ))}
-              </div>
-              <span className="font-medium text-foreground">2,000+</span> businesses
-            </div>
-            <span className="hidden sm:inline text-border">|</span>
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-              ))}
-              <span className="ml-1 font-medium text-foreground">4.9/5</span> rating
+              <Zap className="w-4 h-4 text-primary" />
+              <span className="font-medium text-foreground">AI-Generated</span> responses
             </div>
             <span className="hidden sm:inline text-border">|</span>
             <div className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4" />
-              Save <span className="font-medium text-foreground">15+ hours</span>/week
+              <Globe className="w-4 h-4 text-primary" />
+              <span className="font-medium text-foreground">Google &amp; Yelp</span> integration
+            </div>
+            <span className="hidden sm:inline text-border">|</span>
+            <div className="flex items-center gap-1.5">
+              <Shield className="w-4 h-4 text-primary" />
+              <span className="font-medium text-foreground">Free plan</span> available
             </div>
           </div>
         </div>
@@ -97,9 +87,10 @@ export default function LandingPage() {
             Works with platforms you already use
           </p>
           <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-4 text-muted-foreground/60">
-            {["Google Business", "Yelp", "TripAdvisor", "Facebook", "Apple Maps"].map((name) => (
+            {["Google Business", "Yelp"].map((name) => (
               <span key={name} className="text-sm font-semibold tracking-wide">{name}</span>
             ))}
+            <span className="text-sm font-medium tracking-wide italic">More platforms coming soon</span>
           </div>
         </div>
       </section>
@@ -229,14 +220,14 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Stats / Social Proof ─── */}
+      {/* ─── Why SwiftReview Pro ─── */}
       <section className="max-w-6xl mx-auto px-4 md:px-8 py-24">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 stagger-children">
           {[
-            { value: "2,000+", label: "Businesses", icon: Users },
-            { value: "500K+", label: "Reviews Managed", icon: MessageSquare },
-            { value: "4.9/5", label: "User Rating", icon: Star },
-            { value: "15hrs", label: "Saved/Week", icon: Clock },
+            { value: "Seconds", label: "AI Response Time", icon: Zap },
+            { value: "Google", label: "& Yelp Integration", icon: Globe },
+            { value: "256-bit", label: "AES Encryption", icon: Shield },
+            { value: "Free", label: "Plan Available", icon: CheckCircle2 },
           ].map((stat) => (
             <div key={stat.label} className="card-elevated card-padding text-center">
               <stat.icon className="w-5 h-5 text-primary mx-auto mb-3" />
@@ -247,51 +238,41 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Testimonials ─── */}
+      {/* ─── What You Get ─── */}
       <section className="bg-muted/30 py-24">
         <div className="max-w-6xl mx-auto px-4 md:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-              Loved by business owners
+              Built for local businesses
             </h2>
             <p className="text-muted-foreground mt-3 text-lg">
-              See why thousands trust SwiftReview Pro for their review management.
+              Everything you need to manage customer reviews — nothing you don&apos;t.
             </p>
           </div>
           <div className="grid md:grid-cols-3 gap-6 stagger-children">
             {[
               {
-                quote: "SwiftReview Pro cut our review response time from days to minutes. Our Google rating went from 3.8 to 4.6 in three months.",
-                name: "Sarah Chen",
-                role: "Owner, Chen Dental Group",
-                rating: 5,
+                title: "AI That Sounds Like You",
+                desc: "Set your brand voice, tone, and guardrails. Every AI-generated response stays on-brand and professional.",
+                icon: MessageSquare,
               },
               {
-                quote: "The AI responses sound exactly like our brand voice. Customers can't tell the difference. It's like having a full-time PR team.",
-                name: "Marcus Johnson",
-                role: "GM, Urban Eats Restaurants",
-                rating: 5,
+                title: "Google & Yelp Connected",
+                desc: "Pull reviews from Google Business and Yelp automatically. No copy-pasting, no switching tabs.",
+                icon: Globe,
               },
               {
-                quote: "Managing reviews across 12 locations was a nightmare. Now it takes 20 minutes a day. Absolutely essential tool.",
-                name: "Emily Rodriguez",
-                role: "Marketing Director, FitLife Studios",
-                rating: 5,
+                title: "Secure & Private",
+                desc: "Your data is protected with AES-256-GCM encryption, row-level security, and SOC-2 aligned practices.",
+                icon: Shield,
               },
             ].map((t) => (
-              <div key={t.name} className="card-elevated card-padding flex flex-col">
-                <div className="flex items-center gap-0.5 mb-4">
-                  {[...Array(t.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                  ))}
+              <div key={t.title} className="card-elevated card-padding flex flex-col items-center text-center">
+                <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 mb-5">
+                  <t.icon className="w-5 h-5 text-primary" />
                 </div>
-                <blockquote className="text-sm leading-relaxed flex-1">
-                  &ldquo;{t.quote}&rdquo;
-                </blockquote>
-                <div className="mt-5 pt-4 border-t">
-                  <p className="text-sm font-semibold">{t.name}</p>
-                  <p className="text-xs text-muted-foreground">{t.role}</p>
-                </div>
+                <h4 className="font-bold mb-2">{t.title}</h4>
+                <p className="text-sm text-muted-foreground max-w-xs">{t.desc}</p>
               </div>
             ))}
           </div>
@@ -398,7 +379,7 @@ export default function LandingPage() {
             Ready to respond smarter?
           </h2>
           <p className="text-white/70 text-lg mb-10 max-w-lg mx-auto">
-            Join 2,000+ local businesses saving 15+ hours a week with AI-powered review responses.
+            Start managing your reviews smarter with AI-powered responses — free plan available.
           </p>
           <Link href="/signup">
             <Button

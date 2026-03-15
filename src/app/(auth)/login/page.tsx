@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Shield, Star } from "lucide-react";
+import { Shield } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -137,13 +137,6 @@ export default function LoginPage() {
         <div className="flex items-center gap-1.5">
           <Shield className="w-3.5 h-3.5" />
           256-bit encryption
-        </div>
-        <span className="text-border">|</span>
-        <div className="flex items-center gap-1">
-          {[...Array(5)].map((_, i) => (
-            <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
-          ))}
-          <span className="ml-1">4.9/5</span>
         </div>
       </div>
     </>
