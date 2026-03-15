@@ -164,31 +164,37 @@ async function DashboardKPIs() {
         title="Total Reviews"
         value={data.totalReviews}
         icon={MessageSquare}
+        href="/reviews"
       />
       <StatCard
         title="Pending Response"
         value={data.pendingResponse}
         icon={Inbox}
+        href="/reviews?status=new"
       />
       <StatCard
         title="Drafts Ready"
         value={data.draftsReady}
         icon={FileText}
+        href="/reviews?status=draft_generated"
       />
       <StatCard
         title="Posted"
         value={data.posted}
         icon={Send}
+        href="/reviews?status=posted"
       />
       <StatCard
         title="Negative Attention"
         value={data.negativeAttention}
         icon={AlertTriangle}
+        href="/reviews?status=negative"
       />
       <StatCard
         title="Avg Response"
         value={responseTimeLabel}
         icon={Clock}
+        href="/analytics"
       />
     </div>
   );

@@ -7,6 +7,7 @@ import {
   useTransition,
   useMemo,
 } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Plus, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -25,7 +26,17 @@ import { AddReviewDialog } from "./add-review-dialog";
 import { CsvImportDialog } from "./csv-import-dialog";
 import { ReviewDetailPanel } from "./review-detail-panel";
 
+const VALID_STATUS_PARAMS = ["all", "new", "draft_generated", "posted", "positive", "negative"];
+
 export function ReviewsInbox() {
+  const searchParams = useSearchParams();
+
+  // Hydrate initial status filter from URL ?status= param
+  const initialStatus = useMemo(() => {
+    const param = searchParams.get("status");
+    return param && VALID_STATUS_PARAMS.includes(param) ? param : "all";
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ---- State ----
   const [reviews, setReviews] = useState<Review[]>([]);
   const [locations, setLocations] = useState<{ id: string; name: string }[]>(
@@ -39,7 +50,7 @@ export function ReviewsInbox() {
   const [isPending, startTransition] = useTransition();
 
   // Filters
-  const [status, setStatus] = useState("all");
+  const [status, setStatus] = useState(initialStatus);
   const [locationId, setLocationId] = useState("all");
   const [search, setSearch] = useState("");
   const [searchDebounced, setSearchDebounced] = useState("");

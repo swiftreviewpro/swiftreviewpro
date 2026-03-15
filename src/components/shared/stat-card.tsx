@@ -1,4 +1,5 @@
-import { type LucideIcon, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import Link from "next/link";
+import { type LucideIcon, TrendingUp, TrendingDown, Minus, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface StatCardProps {
@@ -10,11 +11,13 @@ interface StatCardProps {
     value: number;
     label?: string;
   };
+  /** Optional link — makes the entire card clickable */
+  href?: string;
   className?: string;
 }
 
 /**
- * Analytics stat card with optional icon and trend indicator.
+ * Analytics stat card with optional icon, trend indicator, and deep-link.
  */
 export function StatCard({
   title,
@@ -22,6 +25,7 @@ export function StatCard({
   description,
   icon: Icon,
   trend,
+  href,
   className,
 }: StatCardProps) {
   const TrendIcon =
@@ -38,15 +42,20 @@ export function StatCard({
       ? "text-destructive"
       : "text-muted-foreground";
 
-  return (
-    <div className={cn("card-elevated card-padding", className)}>
+  const content = (
+    <>
       <div className="flex items-start justify-between mb-3">
         <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        {Icon && (
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10">
-            <Icon className="w-4 h-4 text-primary" />
-          </div>
-        )}
+        <div className="flex items-center gap-1.5">
+          {Icon && (
+            <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary/10">
+              <Icon className="w-4 h-4 text-primary" />
+            </div>
+          )}
+          {href && (
+            <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+          )}
+        </div>
       </div>
       <div className="space-y-1">
         <p className="text-2xl font-bold tracking-tight">{value}</p>
@@ -64,6 +73,26 @@ export function StatCard({
           )}
         </div>
       </div>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={cn(
+          "card-interactive card-padding group block",
+          className
+        )}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div className={cn("card-elevated card-padding", className)}>
+      {content}
     </div>
   );
 }
